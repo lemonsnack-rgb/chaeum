@@ -163,6 +163,12 @@ export async function generateBatchRecipes(
     }
   }
 
+  // If user is not authenticated, generate a temporary UUID for anonymous users
+  if (!userId) {
+    userId = crypto.randomUUID();
+    console.log('Using anonymous user ID:', userId);
+  }
+
   const newRecipes: Recipe[] = [];
 
   for (let i = 0; i < recipesData.length; i++) {
@@ -180,7 +186,7 @@ export async function generateBatchRecipes(
 
     const recipe: Recipe = {
       id: crypto.randomUUID(),
-      user_id: userId || 'anonymous',
+      user_id: userId,
       title: recipeData.title || 'Untitled Recipe',
       description: recipeData.description || '',
       main_ingredients: Array.isArray(recipeData.main_ingredients)
