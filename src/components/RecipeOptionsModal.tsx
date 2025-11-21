@@ -43,7 +43,7 @@ export function RecipeOptionsModal({ onClose, onGenerate }: RecipeOptionsModalPr
       <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-gradient-to-br from-primary to-primary-dark p-6 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-2xl font-bold text-white">\uc5b4\ub5a4 \ub808\uc2dc\ud53c\ub97c \ucc3e\ub098\uc694?</h2>
+            <h2 className="text-2xl font-bold text-white">어떤 레시피를 찾나요?</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -51,7 +51,7 @@ export function RecipeOptionsModal({ onClose, onGenerate }: RecipeOptionsModalPr
               <X className="w-6 h-6 text-white" />
             </button>
           </div>
-          <p className="text-orange-100 text-sm">\uc6d0\ud558\ub294 \uc635\uc158\uc744 \uc120\ud0dd\ud558\uace0 \ub808\uc2dc\ud53c\ub97c \ucc3e\uc544\ubcf4\uc138\uc694</p>
+          <p className="text-orange-100 text-sm">원하는 옵션을 선택하고 레시피를 찾아보세요</p>
         </div>
 
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
@@ -113,14 +113,14 @@ export function RecipeOptionsModal({ onClose, onGenerate }: RecipeOptionsModalPr
             </div>
 
             <div className="mb-4">
-              <p className="text-sm font-semibold text-gray-700 mb-2">\ud14c\ub9c8 \uc9c1\uc811 \uc785\ub825</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">테마 직접 입력</p>
               <div className="flex gap-2 items-stretch">
                 <input
                   type="text"
                   value={customTheme}
                   onChange={(e) => setCustomTheme(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddCustomTheme()}
-                  placeholder="\uc608: \uac04\ud3b8\uc2dd, \uac74\uac15\uc2dd, \ud574\uc7a5"
+                  placeholder="예: 간편식, 건강식, 해장"
                   className="flex-1 min-w-0 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none text-sm"
                 />
                 <button
@@ -128,7 +128,7 @@ export function RecipeOptionsModal({ onClose, onGenerate }: RecipeOptionsModalPr
                   disabled={!customTheme.trim()}
                   className="flex-shrink-0 px-3 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
-                  \ucd94\uac00
+                  추가
                 </button>
               </div>
             </div>
@@ -162,7 +162,7 @@ export function RecipeOptionsModal({ onClose, onGenerate }: RecipeOptionsModalPr
             onClick={handleGenerate}
             className="w-full bg-primary hover:bg-primary-dark text-white rounded-2xl py-4 px-6 font-bold text-lg transition-all shadow-lg hover:shadow-xl"
           >
-            \ub808\uc2dc\ud53c \ucc3e\uae30
+            레시피 찾기
           </button>
         </div>
       </div>
