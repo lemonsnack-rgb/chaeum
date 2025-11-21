@@ -72,31 +72,40 @@ async function fileToGenerativePart(file: File) {
 
 export async function classifyIngredient(ingredientName: string): Promise<string> {
   if (!genAI) {
-    return '주재료';
+    return '기타';
   }
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const prompt = `다음 재료를 "주재료" 또는 "부재료" 중 하나로 분류하세요. 오직 한 단어만 응답하세요.
+    const prompt = `다음 재료를 가장 적합한 카테고리로 분류하세요. 다음 중 하나만 정확히 응답하세요: 육류, 채소, 어패류, 곡류, 유제품, 양념, 과일, 기타
 
 재료: ${ingredientName}
 
 분류 기준:
-- 주재료: 닭고기, 돼지고기, 소고기, 생선, 감자, 양파, 당근, 버섯, 두부, 계란, 쌀, 면, 파스타 등 요리의 주된 재료
-- 부재료: 간장, 소금, 설탕, 후추, 기름, 식초, 고추장, 된장, 마늘, 생강, 소스, 양념류 등
+- 육류: 소고기, 돼지고기, 닭고기, 양고기, 오리고기, 베이컨, 햄, 소시지 등
+- 채소: 양파, 당근, 감자, 배추, 무, 파, 마늘, 생강, 버섯, 고추, 토마토, 호박, 가지, 브로콜리 등
+- 어패류: 생선, 새우, 오징어, 조개, 게, 참치, 연어, 고등어 등
+- 곡류: 쌀, 밀가루, 빵, 면, 파스타, 시리얼, 떡 등
+- 유제품: 우유, 치즈, 버터, 요구르트, 크림 등
+- 양념: 간장, 소금, 설탕, 후추, 기름, 식초, 고추장, 된장, 참기름, 소스류, 향신료 등
+- 과일: 사과, 배, 바나나, 딸기, 포도, 수박, 오렌지 등
+- 기타: 위 카테고리에 속하지 않는 식재료
 
-응답: `;
+응답 (카테고리명만): `;
 
     const result = await model.generateContent(prompt);
     const response = result.response.text().trim();
 
-    if (response.includes('부재료')) {
-      return '부재료';
+    const validCategories = ['육류', '채소', '어패류', '곡류', '유제품', '양념', '과일', '기타'];
+    for (const category of validCategories) {
+      if (response.includes(category)) {
+        return category;
+      }
     }
-    return '주재료';
+    return '기타';
   } catch (error) {
     console.error('Classification error:', error);
-    return '주재료';
+    return '기타';
   }
 }

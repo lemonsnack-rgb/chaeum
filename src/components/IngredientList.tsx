@@ -114,9 +114,14 @@ export function IngredientList({ ingredients, onUpdate, onDelete }: IngredientLi
                   <h4 className="font-semibold text-gray-900 text-lg">{ingredient.name}</h4>
                   {ingredient.category && (
                     <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                      ingredient.category === '주재료'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-amber-100 text-amber-700'
+                      ingredient.category === '육류' ? 'bg-red-100 text-red-700' :
+                      ingredient.category === '채소' ? 'bg-green-100 text-green-700' :
+                      ingredient.category === '어패류' ? 'bg-blue-100 text-blue-700' :
+                      ingredient.category === '곡류' ? 'bg-amber-100 text-amber-700' :
+                      ingredient.category === '유제품' ? 'bg-yellow-100 text-yellow-700' :
+                      ingredient.category === '양념' ? 'bg-orange-100 text-orange-700' :
+                      ingredient.category === '과일' ? 'bg-pink-100 text-pink-700' :
+                      'bg-gray-100 text-gray-700'
                     }`}>
                       {ingredient.category}
                     </span>
