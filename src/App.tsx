@@ -166,7 +166,7 @@ function App() {
   }
 
   async function handleDeleteRecipe(recipeId: string) {
-    if (!confirm('\uc774 \ub808\uc2dc\ud53c\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) {
+    if (!confirm('이 레시피를 삭제하시겠습니까?')) {
       return;
     }
 
@@ -178,12 +178,12 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to delete recipe:', error);
-      alert('\ub808\uc2dc\ud53c \uc0ad\uc81c \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4.');
+      alert('레시피 삭제 중 오류가 발생했습니다.');
     }
   }
 
   async function handleClearAllIngredients() {
-    if (!confirm(`\ubaa8\ub4e0 \uc7ac\ub8cc(${ingredients.length}\uac1c)\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?`)) {
+    if (!confirm(`모든 재료(${ingredients.length}개)를 삭제하시겠습니까?`)) {
       return;
     }
 
@@ -191,7 +191,7 @@ function App() {
       await clearAllIngredients();
     } catch (error) {
       console.error('Failed to clear ingredients:', error);
-      alert('\uc7ac\ub8cc \uc0ad\uc81c \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4.');
+      alert('재료 삭제 중 오류가 발생했습니다.');
     }
   }
 
@@ -248,17 +248,17 @@ function App() {
 
             <section>
               <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-lg font-bold text-gray-900">\ub0b4 \ub0c9\uc7a5\uace0 \uc7ac\ub8cc</h3>
+                <h3 className="text-lg font-bold text-gray-900">내 냉장고 재료</h3>
                 {ingredients.length > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">
-                      \ucd1d {ingredients.length}\uac1c
+                      총 {ingredients.length}개
                     </span>
                     <button
                       onClick={handleClearAllIngredients}
                       className="text-xs text-red-600 hover:text-red-700 font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
                     >
-                      \uc804\uccb4 \uc0ad\uc81c
+                      전체 삭제
                     </button>
                   </div>
                 )}
