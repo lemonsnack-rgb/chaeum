@@ -34,6 +34,7 @@ function App() {
     updateIngredient,
     deleteIngredient,
     addMultipleIngredients,
+    clearAllIngredients,
   } = useIngredients();
 
   const handleIngredientsExtracted = async (names: string[]) => {
@@ -181,6 +182,19 @@ function App() {
     }
   }
 
+  async function handleClearAllIngredients() {
+    if (!confirm(`\ubaa8\ub4e0 \uc7ac\ub8cc(${ingredients.length}\uac1c)\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?`)) {
+      return;
+    }
+
+    try {
+      await clearAllIngredients();
+    } catch (error) {
+      console.error('Failed to clear ingredients:', error);
+      alert('\uc7ac\ub8cc \uc0ad\uc81c \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4.');
+    }
+  }
+
   if (selectedRecipe) {
     const isFromRecommendations = recommendedRecipes.some(r => r.id === selectedRecipe.id);
     return (
@@ -234,11 +248,19 @@ function App() {
 
             <section>
               <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-lg font-bold text-gray-900">내 냉장고 재료</h3>
+                <h3 className="text-lg font-bold text-gray-900">\ub0b4 \ub0c9\uc7a5\uace0 \uc7ac\ub8cc</h3>
                 {ingredients.length > 0 && (
-                  <span className="text-sm text-gray-500">
-                    총 {ingredients.length}개
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">
+                      \ucd1d {ingredients.length}\uac1c
+                    </span>
+                    <button
+                      onClick={handleClearAllIngredients}
+                      className="text-xs text-red-600 hover:text-red-700 font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      \uc804\uccb4 \uc0ad\uc81c
+                    </button>
+                  </div>
                 )}
               </div>
 

@@ -108,6 +108,16 @@ export function useIngredients() {
     }
   }
 
+  async function clearAllIngredients() {
+    try {
+      setIngredients([]);
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('Error clearing ingredients:', error);
+      throw error;
+    }
+  }
+
   return {
     ingredients,
     loading,
@@ -116,6 +126,7 @@ export function useIngredients() {
     updateIngredient,
     deleteIngredient,
     addMultipleIngredients,
+    clearAllIngredients,
     refreshIngredients: loadIngredients,
   };
 }
