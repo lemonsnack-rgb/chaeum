@@ -31,8 +31,8 @@ export interface RecipeJsonSchema {
 }
 
 export const RECIPE_JSON_SCHEMA_TEMPLATE = `{
-  "title": "레시피 제목",
-  "description": "한 줄 요약",
+  "title": "레시피 제목 (한국어로만 작성, 영어 명칭 절대 불가)",
+  "description": "한 줄 요약 (한국어로만 작성)",
   "meta": {
     "difficulty": "초급/중급/고급",
     "cooking_time_min": 30,

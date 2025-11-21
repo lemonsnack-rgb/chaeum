@@ -24,6 +24,8 @@ export function generateRecipePrompt(options: PromptOptions): string {
 
 **중요: ${recipesToGenerate}개의 서로 다른 레시피를 JSON 배열 형태로 생성해야 합니다.**
 
+**레시피 명칭 규칙: 모든 레시피 제목과 설명은 반드시 한국어로만 작성하십시오. 영어 명칭이나 영어 번역을 절대 포함하지 마십시오. (예: "김치볶음밥 (Kimchi Fried Rice)" ✗, "김치볶음밥" ✓)**
+
 응답은 반드시 다른 텍스트 설명 없이 **오직 JSON 배열만** 반환하십시오.
 
 ## 입력 재료 및 조건 (사용자 환경)

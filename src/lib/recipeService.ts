@@ -376,6 +376,8 @@ export async function generateRecipeWithCaching(
   const prompt = `## 역할 및 목표
 당신은 사용자의 냉장고 재료를 기반으로 안전하고 영양가 있으며, SEO에 최적화된 레시피를 생성하는 전문 셰프 AI입니다. 응답은 반드시 지정된 JSON 스키마를 **절대적으로 준수**해야 합니다. 다른 텍스트 설명 없이 **오직 JSON 객체만** 반환하십시오.
 
+**레시피 명칭 규칙: 모든 레시피 제목과 설명은 반드시 한국어로만 작성하십시오. 영어 명칭이나 영어 번역을 절대 포함하지 마십시오. (예: "김치볶음밥 (Kimchi Fried Rice)" ✗, "김치볶음밥" ✓)**
+
 ## 입력 재료 및 조건
 1. 사용자 보유 재료 (필수 사용): ${sortedIngredients.join(', ')}
 2. 인분 기준: ${servings}인분
@@ -399,8 +401,8 @@ ${dietaryPreferences.length > 0 ? `${(themePreference ? 1 : 0) + (allergies.leng
 
 ## 출력 JSON 스키마 (절대 준수)
 {
-  "title": "레시피 제목",
-  "description": "한 줄 요약",
+  "title": "레시피 제목 (한국어로만 작성, 영어 명칭 절대 불가)",
+  "description": "한 줄 요약 (한국어로만 작성)",
   "meta": {
     "difficulty": "초급/중급/고급",
     "cooking_time_min": 30,
