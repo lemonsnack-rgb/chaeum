@@ -97,7 +97,7 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
   };
 }
 
-// DatabaseRecipe를 Recipe로 변환
+// generated_recipes 테이블 데이터를 Recipe로 변환
 function databaseToRecipe(dbRecipe: any): Recipe {
   return {
     id: dbRecipe.id,
@@ -129,6 +129,38 @@ function databaseToRecipe(dbRecipe: any): Recipe {
   };
 }
 
+// user_recipes 테이블 데이터를 Recipe로 변환
+function userRecipeToRecipe(userRecipe: any): Recipe {
+  return {
+    id: userRecipe.id,
+    title: userRecipe.title,
+    description: '',
+    main_ingredients: userRecipe.main_ingredients || [],
+    theme_tags: userRecipe.theme_tags || [],
+    ingredients_detail: userRecipe.ingredients_detail || [],
+    instructions: userRecipe.instructions || [],
+    meta: {
+      difficulty: '중급',
+      cooking_time_min: userRecipe.cooking_time || 30,
+      calories_per_serving: userRecipe.nutrition?.calories || 0,
+      protein: userRecipe.nutrition?.protein || 0,
+      fat: userRecipe.nutrition?.fat || 0,
+      carbohydrates: userRecipe.nutrition?.carbohydrates || 0,
+      calorie_signal: '🟢',
+    },
+    nutrition: userRecipe.nutrition || {
+      calories: 0,
+      protein: 0,
+      fat: 0,
+      carbohydrates: 0,
+    },
+    deep_info: userRecipe.deep_info || {},
+    cooking_time: userRecipe.cooking_time || 30,
+    servings: userRecipe.servings || 2,
+    created_at: userRecipe.created_at,
+  };
+}
+
 export async function generateBatchRecipes(
   ingredientNames: string[],
   servings: number = 2,
@@ -145,7 +177,7 @@ export async function generateBatchRecipes(
   if (supabase) {
     const { data: cached, error: cacheError } = await supabase
       .from('generated_recipes')
-      .select('*')
+      .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
       .contains('main_ingredients', sortedIngredients)
       .order('created_at', { ascending: false })
       .limit(3);
@@ -339,7 +371,7 @@ export async function generateRecipeWithCaching(
   if (supabase) {
     const { data: cachedRecipe, error: cacheError } = await supabase
       .from('generated_recipes')
-      .select('*')
+      .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
       .contains('main_ingredients', sortedIngredients)
       .maybeSingle();
 
@@ -471,7 +503,7 @@ export async function getUserRecipes(): Promise<Recipe[]> {
 
   const { data, error } = await supabase
     .from('generated_recipes')
-    .select('*')
+    .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -585,7 +617,7 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
   if (!query) {
     const { data, error } = await supabase
       .from('generated_recipes')
-      .select('*')
+      .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -599,7 +631,7 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
 
   const { data, error } = await supabase
     .from('generated_recipes')
-    .select('*')
+    .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
     .or(`title.ilike.%${query}%,main_ingredients.cs.{${query}},theme_tags.cs.{${query}}`)
     .order('created_at', { ascending: false })
     .limit(50);
@@ -624,7 +656,7 @@ export async function getUserSavedRecipes(): Promise<Recipe[]> {
 
   const { data, error } = await supabase
     .from('user_recipes')
-    .select('*')
+    .select('id, user_id, original_recipe_id, title, main_ingredients, theme_tags, ingredients_detail, instructions, nutrition, deep_info, cooking_time, servings, created_at')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: false});
 
@@ -633,7 +665,7 @@ export async function getUserSavedRecipes(): Promise<Recipe[]> {
     return [];
   }
 
-  return (data || []).map(databaseToRecipe);
+  return (data || []).map(userRecipeToRecipe);
 }
 
 export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
@@ -649,7 +681,7 @@ export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
 
   const { data, error } = await supabase
     .from('user_recipes')
-    .select('*')
+    .select('id, user_id, original_recipe_id, title, main_ingredients, theme_tags, ingredients_detail, instructions, nutrition, deep_info, cooking_time, servings, created_at')
     .or(`title.ilike.%${query}%,main_ingredients.cs.{${query}},theme_tags.cs.{${query}}`)
     .order('created_at', { ascending: false });
 
@@ -658,5 +690,5 @@ export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
     return [];
   }
 
-  return (data || []).map(databaseToRecipe);
+  return (data || []).map(userRecipeToRecipe);
 }
