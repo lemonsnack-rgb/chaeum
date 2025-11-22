@@ -325,15 +325,14 @@ export async function generateBatchRecipes(
   // 데이터베이스에 저장
   if (supabase) {
     console.log('Attempting to save recipes to database...');
-    
+
     // Recipe를 DatabaseRecipe 형식으로 변환
     const dbRecipes = newRecipes.map(recipeToDatabase);
     console.log('Recipes to insert:', JSON.stringify(dbRecipes, null, 2));
 
-    const { data: insertedRecipes, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('generated_recipes')
-      .insert(dbRecipes)
-      .select();
+      .insert(dbRecipes);
 
     if (insertError) {
       console.error('Database insert error:', insertError);
@@ -346,10 +345,7 @@ export async function generateBatchRecipes(
       throw new Error('레시피를 데이터베이스에 저장하는 중 오류가 발생했습니다: ' + insertError.message);
     }
 
-    if (insertedRecipes && insertedRecipes.length > 0) {
-      console.log(`✅ Successfully saved ${insertedRecipes.length} recipes to database`);
-      console.log('Inserted recipe IDs:', insertedRecipes.map(r => r.id));
-    }
+    console.log(`✅ Successfully saved ${dbRecipes.length} recipes to database`);
   }
 
   const allRecipes = [...cachedRecipes, ...newRecipes];
