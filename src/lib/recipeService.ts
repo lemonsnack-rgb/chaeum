@@ -612,6 +612,30 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
   return (data || []).map(databaseToRecipe);
 }
 
+export async function getUserSavedRecipes(): Promise<Recipe[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('user_recipes')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: false});
+
+  if (error) {
+    console.error('Error fetching user recipes:', error);
+    return [];
+  }
+
+  return (data || []).map(databaseToRecipe);
+}
+
 export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
   if (!supabase) {
     return [];
