@@ -99,6 +99,9 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
 
 // generated_recipes 테이블 데이터를 Recipe로 변환
 function databaseToRecipe(dbRecipe: any): Recipe {
+  // content.meta에서 메타 정보 추출
+  const meta = dbRecipe.content?.meta || {};
+
   return {
     id: dbRecipe.id,
     title: dbRecipe.title,
@@ -108,22 +111,22 @@ function databaseToRecipe(dbRecipe: any): Recipe {
     ingredients_detail: dbRecipe.content?.ingredients_detail || [],
     instructions: dbRecipe.content?.instructions || [],
     meta: {
-      difficulty: dbRecipe.difficulty,
-      cooking_time_min: dbRecipe.cooking_time_min,
-      calories_per_serving: dbRecipe.calories_per_serving,
-      protein: dbRecipe.content?.nutrition?.protein || 0,
-      fat: dbRecipe.content?.nutrition?.fat || 0,
-      carbohydrates: dbRecipe.content?.nutrition?.carbohydrates || 0,
-      calorie_signal: dbRecipe.calorie_signal,
+      difficulty: meta.difficulty || '중급',
+      cooking_time_min: meta.cooking_time_min || 30,
+      calories_per_serving: meta.calories_per_serving || 0,
+      protein: dbRecipe.content?.nutrition?.protein || meta.protein || 0,
+      fat: dbRecipe.content?.nutrition?.fat || meta.fat || 0,
+      carbohydrates: dbRecipe.content?.nutrition?.carbohydrates || meta.carbohydrates || 0,
+      calorie_signal: meta.calorie_signal || '🟢',
     },
     nutrition: dbRecipe.content?.nutrition || {
-      calories: dbRecipe.calories_per_serving || 0,
-      protein: 0,
-      fat: 0,
-      carbohydrates: 0,
+      calories: meta.calories_per_serving || 0,
+      protein: meta.protein || 0,
+      fat: meta.fat || 0,
+      carbohydrates: meta.carbohydrates || 0,
     },
     deep_info: dbRecipe.content?.deep_info || {},
-    cooking_time: dbRecipe.cooking_time_min || 30,
+    cooking_time: meta.cooking_time_min || 30,
     servings: dbRecipe.content?.servings || 2,
     created_at: dbRecipe.created_at,
   };
@@ -177,7 +180,7 @@ export async function generateBatchRecipes(
   if (supabase) {
     const { data: cached, error: cacheError } = await supabase
       .from('generated_recipes')
-      .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
+      .select('id, title, content, theme_tags, main_ingredients, created_at')
       .contains('main_ingredients', sortedIngredients)
       .order('created_at', { ascending: false })
       .limit(3);
@@ -367,7 +370,7 @@ export async function generateRecipeWithCaching(
   if (supabase) {
     const { data: cachedRecipe, error: cacheError } = await supabase
       .from('generated_recipes')
-      .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
+      .select('id, title, content, theme_tags, main_ingredients, created_at')
       .contains('main_ingredients', sortedIngredients)
       .maybeSingle();
 
@@ -499,7 +502,7 @@ export async function getUserRecipes(): Promise<Recipe[]> {
 
   const { data, error } = await supabase
     .from('generated_recipes')
-    .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
+    .select('id, title, content, theme_tags, main_ingredients, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -613,7 +616,7 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
   if (!query) {
     const { data, error } = await supabase
       .from('generated_recipes')
-      .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
+      .select('id, title, content, theme_tags, main_ingredients, created_at')
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -627,7 +630,7 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
 
   const { data, error } = await supabase
     .from('generated_recipes')
-    .select('id, title, content, difficulty, cooking_time_min, cooking_time, calories_per_serving, calorie_signal, theme_tags, main_ingredients, created_at')
+    .select('id, title, content, theme_tags, main_ingredients, created_at')
     .or(`title.ilike.%${query}%,main_ingredients.cs.{${query}},theme_tags.cs.{${query}}`)
     .order('created_at', { ascending: false })
     .limit(50);
