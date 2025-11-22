@@ -19,10 +19,12 @@ export interface Recipe {
   created_at: string;
 }
 
-// 실제 DB에 저장되는 구조
+// 실제 DB에 저장되는 구조 (스키마 캐시 문제로 문제가 되는 컬럼 제거)
 interface DatabaseRecipe {
   id: string;
   title: string;
+  main_ingredients: string[];
+  theme_tags: string[];
   content: {
     description?: string;
     ingredients_detail: IngredientDetail[];
@@ -30,14 +32,8 @@ interface DatabaseRecipe {
     nutrition: NutritionInfo;
     deep_info: DeepInfo;
     servings: number;
+    meta?: RecipeMeta; // 메타 정보를 content 안에 저장
   };
-  difficulty: string;
-  cooking_time_min: number;
-  cooking_time: string;
-  calories_per_serving: number;
-  calorie_signal: string;
-  theme_tags: string[];
-  main_ingredients: string[];
   created_at: string;
 }
 
@@ -73,11 +69,13 @@ export interface DeepInfo {
   storage?: string;
 }
 
-// Recipe를 DatabaseRecipe로 변환
+// Recipe를 DatabaseRecipe로 변환 (스키마 캐시 문제로 인해 기본 컬럼만 사용)
 function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
   return {
     id: recipe.id,
     title: recipe.title,
+    main_ingredients: recipe.main_ingredients,
+    theme_tags: recipe.theme_tags,
     content: {
       description: recipe.description,
       ingredients_detail: recipe.ingredients_detail,
@@ -85,14 +83,8 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
       nutrition: recipe.nutrition,
       deep_info: recipe.deep_info,
       servings: recipe.servings,
+      meta: recipe.meta, // 모든 메타 정보를 content 안에 저장
     },
-    difficulty: recipe.meta?.difficulty || '중급',
-    cooking_time_min: recipe.meta?.cooking_time_min || recipe.cooking_time || 30,
-    cooking_time: `${recipe.meta?.cooking_time_min || recipe.cooking_time || 30}분`,
-    calories_per_serving: recipe.meta?.calories_per_serving || recipe.nutrition?.calories || 0,
-    calorie_signal: recipe.meta?.calorie_signal || '🟢',
-    theme_tags: recipe.theme_tags,
-    main_ingredients: recipe.main_ingredients,
     created_at: recipe.created_at,
   };
 }
