@@ -298,10 +298,14 @@ export async function generateBatchRecipes(
     // 현재 로그인한 유저 정보 가져오기
     const { data: { user } } = await supabase.auth.getUser();
 
+    if (!user) {
+      throw new Error("로그인이 필요합니다.");
+    }
+
     // Recipe를 DatabaseRecipe 형식으로 변환하고 user_id 추가
     const dbRecipes = newRecipes.map(recipe => ({
       ...recipeToDatabase(recipe),
-      user_id: user?.id || null
+      user_id: user.id
     }));
     console.log('Recipes to insert:', JSON.stringify(dbRecipes, null, 2));
 
@@ -323,7 +327,7 @@ export async function generateBatchRecipes(
 
     if (insertedRecipes && insertedRecipes.length > 0) {
       console.log(`✅ Successfully saved ${insertedRecipes.length} recipes to database`);
-      console.log('Inserted recipe IDs:', insertedRecipes.map(r => r.id));
+      console.log('Inserted recipe IDs:', insertedRecipes.map((r: any) => r.id));
     }
   }
 
