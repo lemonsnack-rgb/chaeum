@@ -104,3 +104,42 @@ export async function updateUserProfile(updates: {
     throw error;
   }
 }
+
+export async function getMyBookmarkedRecipes() {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('user_recipes')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching bookmarked recipes:', error);
+    return [];
+  }
+
+  // Convert to Recipe format
+  return (data || []).map((dbRecipe: any) => ({
+    id: dbRecipe.id,
+    title: dbRecipe.title,
+    description: '',
+    main_ingredients: dbRecipe.main_ingredients || [],
+    theme_tags: dbRecipe.theme_tags || [],
+    ingredients_detail: dbRecipe.ingredients_detail || [],
+    instructions: dbRecipe.instructions || [],
+    meta: {},
+    nutrition: dbRecipe.nutrition || { calories: 0, protein: 0, fat: 0, carbohydrates: 0 },
+    deep_info: dbRecipe.deep_info || {},
+    cooking_time: dbRecipe.cooking_time || 30,
+    servings: dbRecipe.servings || 2,
+    created_at: dbRecipe.created_at,
+  }));
+}

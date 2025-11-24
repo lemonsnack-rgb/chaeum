@@ -9,17 +9,20 @@ import { RecipeDetail } from './components/RecipeDetail';
 import { RecipeSearch } from './components/RecipeSearch';
 import { AuthModal } from './components/AuthModal';
 import { RecipeOptionsModal } from './components/RecipeOptionsModal';
+import { LoadingModal } from './components/LoadingModal';
 import { generateBatchRecipes, getUserRecipes, deleteRecipe, searchRecipes, searchPublicRecipes, saveUserRecipe, Recipe } from './lib/recipeService';
-import { signOut, getCurrentUser, getUserProfile } from './lib/authService';
+import { signOut, getCurrentUser, getUserProfile, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
 
 type Tab = 'fridge' | 'recipe' | 'profile';
+type RecipeSubTab = 'search' | 'recommended' | 'saved';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('fridge');
+  const [recipeSubTab, setRecipeSubTab] = useState<RecipeSubTab>('search');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
-  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [generatingRecipe, setGeneratingRecipe] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -62,9 +65,31 @@ function App() {
   useEffect(() => {
     checkAuth();
     if (activeTab === 'recipe') {
-      handleSearch('');
+      loadRecipesBySubTab();
     }
-  }, [activeTab]);
+  }, [activeTab, recipeSubTab]);
+
+  async function loadRecipesBySubTab() {
+    if (recipeSubTab === 'search') {
+      handleSearch('');
+    } else if (recipeSubTab === 'saved') {
+      await loadSavedRecipes();
+    }
+  }
+
+  async function loadSavedRecipes() {
+    if (!isAuthenticated) {
+      setSavedRecipes([]);
+      return;
+    }
+    try {
+      const bookmarked = await getMyBookmarkedRecipes();
+      setSavedRecipes(bookmarked);
+    } catch (error) {
+      console.error('Failed to load saved recipes:', error);
+      setSavedRecipes([]);
+    }
+  }
 
   useEffect(() => {
     if (!supabase) return;
@@ -154,8 +179,8 @@ function App() {
       const ingredientNames = ingredients.map(i => i.name);
       const generatedRecipes = await generateBatchRecipes(ingredientNames, servings, theme);
       setRecommendedRecipes(generatedRecipes);
-      setShowRecommendations(true);
       setActiveTab('recipe');
+      setRecipeSubTab('recommended');
     } catch (error) {
       console.error('Failed to generate recipe:', error);
       alert('레시피 찾는 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -284,93 +309,173 @@ function App() {
 
         {activeTab === 'recipe' && (
           <>
-            {!showRecommendations && (
+            {/* 서브탭 네비게이션 */}
+            <section className="mb-6">
+              <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
+                <button
+                  onClick={() => setRecipeSubTab('search')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    recipeSubTab === 'search'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  레시피 검색
+                </button>
+                <button
+                  onClick={() => setRecipeSubTab('recommended')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    recipeSubTab === 'recommended'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  추천 레시피
+                  {recommendedRecipes.length > 0 && (
+                    <span className="ml-1 text-xs bg-primary text-white rounded-full px-2 py-0.5">
+                      {recommendedRecipes.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setRecipeSubTab('saved')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    recipeSubTab === 'saved'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  저장 레시피
+                </button>
+              </div>
+            </section>
+
+            {/* DB 검색 탭 */}
+            {recipeSubTab === 'search' && (
+              <>
+                <section className="mb-6">
+                  <RecipeSearch onSearch={handleSearch} />
+                </section>
+
+                <section className="mb-6">
+                  <div className="flex items-center justify-between mb-4 px-1">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {searchQuery ? '검색 결과' : '전체 레시피'}
+                    </h3>
+                    {recipes.length > 0 && (
+                      <span className="text-sm text-gray-500">
+                        총 {recipes.length}개
+                      </span>
+                    )}
+                  </div>
+                  <RecipeList
+                    recipes={recipes}
+                    onSelectRecipe={setSelectedRecipe}
+                    onDeleteRecipe={handleDeleteRecipe}
+                  />
+                </section>
+              </>
+            )}
+
+            {/* 추천 레시피 탭 */}
+            {recipeSubTab === 'recommended' && (
               <section className="mb-6">
-                <RecipeSearch onSearch={handleSearch} />
+                <div className="flex items-center justify-between mb-4 px-1">
+                  <h3 className="text-lg font-bold text-gray-900">AI 추천 레시피</h3>
+                  {recommendedRecipes.length > 0 && (
+                    <span className="text-sm text-gray-500">
+                      총 {recommendedRecipes.length}개
+                    </span>
+                  )}
+                </div>
+                {recommendedRecipes.length > 0 ? (
+                  <>
+                    <RecipeList
+                      recipes={recommendedRecipes}
+                      onSelectRecipe={setSelectedRecipe}
+                      onDeleteRecipe={handleDeleteRecipe}
+                      hideDelete={true}
+                    />
+                    <div className="mt-6">
+                      <button
+                        onClick={handleGenerateRecipe}
+                        disabled={generatingRecipe || ingredients.length === 0}
+                        className="w-full bg-gradient-to-r from-primary to-orange-600 text-white rounded-2xl py-4 px-6 font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {generatingRecipe ? (
+                          <>
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            레시피 찾는 중...
+                          </>
+                        ) : (
+                          <>
+                            <ChefHat className="w-6 h-6" />
+                            다른 레시피 추천받기
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 text-center">
+                    <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">아직 추천받은 레시피가 없습니다.</p>
+                    <button
+                      onClick={() => setActiveTab('fridge')}
+                      className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-all"
+                    >
+                      냉장고에서 레시피 찾기
+                    </button>
+                  </div>
+                )}
               </section>
             )}
 
-            <section className="mb-6">
-              <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-lg font-bold text-gray-900">
-                  {showRecommendations ? '레시피 추천' : searchQuery ? '검색 결과' : '추천 레시피'}
-                </h3>
-                {showRecommendations ? (
-                  <button
-                    onClick={() => {
-                      setShowRecommendations(false);
-                      setRecommendedRecipes([]);
-                    }}
-                    className="text-sm text-primary hover:text-primary-dark font-semibold"
-                  >
-                    닫기
-                  </button>
-                ) : (
-                  recipes.length > 0 && (
+            {/* 내 저장 레시피 탭 */}
+            {recipeSubTab === 'saved' && (
+              <section className="mb-6">
+                <div className="flex items-center justify-between mb-4 px-1">
+                  <h3 className="text-lg font-bold text-gray-900">저장한 레시피</h3>
+                  {savedRecipes.length > 0 && (
                     <span className="text-sm text-gray-500">
-                      총 {recipes.length}개
+                      총 {savedRecipes.length}개
                     </span>
-                  )
-                )}
-              </div>
-              {showRecommendations ? (
-                <>
-                  <RecipeList
-                    recipes={recommendedRecipes}
-                    onSelectRecipe={setSelectedRecipe}
-                    onDeleteRecipe={handleDeleteRecipe}
-                    hideDelete={true}
-                  />
-                  <div className="mt-6">
+                  )}
+                </div>
+                {!isAuthenticated ? (
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 text-center">
+                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ShieldCheck className="w-8 h-8 text-white" />
+                    </div>
+                    <h4 className="font-bold text-gray-900 mb-2">로그인이 필요합니다</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      레시피를 저장하려면 로그인해주세요.
+                    </p>
                     <button
-                      onClick={handleGenerateRecipe}
-                      disabled={generatingRecipe || ingredients.length === 0}
-                      className="w-full bg-gradient-to-r from-primary to-orange-600 text-white rounded-2xl py-4 px-6 font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      onClick={() => setShowAuthModal(true)}
+                      className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-all"
                     >
-                      {generatingRecipe ? (
-                        <>
-                          <Loader2 className="w-6 h-6 animate-spin" />
-                          레시피 찾는 중...
-                        </>
-                      ) : (
-                        <>
-                          <ChefHat className="w-6 h-6" />
-                          다른 레시피 추천받기
-                        </>
-                      )}
+                      로그인하기
                     </button>
                   </div>
-                </>
-              ) : (
-                <RecipeList
-                  recipes={recipes}
-                  onSelectRecipe={setSelectedRecipe}
-                  onDeleteRecipe={handleDeleteRecipe}
-                />
-              )}
-            </section>
-
-            {!isAuthenticated && (
-              <section>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <ShieldCheck className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">레시피 저장 안내</h4>
-                      <p className="text-sm text-gray-600 leading-relaxed mb-3">
-                        AI가 생성한 레시피를 저장하려면 로그인이 필요합니다.
-                      </p>
-                      <button
-                        onClick={() => setShowAuthModal(true)}
-                        className="w-full px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-all"
-                      >
-                        로그인하고 레시피 저장하기
-                      </button>
-                    </div>
+                ) : savedRecipes.length > 0 ? (
+                  <RecipeList
+                    recipes={savedRecipes}
+                    onSelectRecipe={setSelectedRecipe}
+                    onDeleteRecipe={handleDeleteRecipe}
+                  />
+                ) : (
+                  <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 text-center">
+                    <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">저장한 레시피가 없습니다.</p>
+                    <button
+                      onClick={() => setRecipeSubTab('search')}
+                      className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-all"
+                    >
+                      레시피 둘러보기
+                    </button>
                   </div>
-                </div>
+                )}
               </section>
             )}
           </>
@@ -471,6 +576,7 @@ function App() {
           onGenerate={handleGenerateWithOptions}
         />
       )}
+      <LoadingModal isOpen={generatingRecipe} message="AI가 맞춤 레시피를 생성하고 있습니다..." />
     </div>
   );
 }
