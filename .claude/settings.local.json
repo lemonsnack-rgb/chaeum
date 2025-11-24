@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -I \"https://nipuqisuianmzzxwptkt.supabase.co/rest/v1/generated_recipes?select=id&limit=1\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pcHVxaXN1aWFubXp6eHdwdGt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxNTgyNzQsImV4cCI6MjA0NzczNDI3NH0.5vXlqm3WjHBqW_gqEQjPbJ4t-FqZPrQZk9RFXSqxzWs\")",
+      "Bash(curl:*)",
+      "Bash(npm install:*)",
+      "Bash(npm cache clean:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

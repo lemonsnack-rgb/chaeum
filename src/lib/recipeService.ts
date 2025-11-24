@@ -291,40 +291,46 @@ export async function generateBatchRecipes(
     throw new Error('Failed to parse any valid recipes from API response');
   }
 
-  // 데이터베이스에 저장
+  // 데이터베이스에 저장 (RPC 함수 사용하여 PostgREST 스키마 캐시 문제 우회)
   if (supabase) {
-    console.log('Attempting to save recipes to database...');
+    console.log('Attempting to save recipes to database using RPC...');
 
     // 현재 로그인한 유저 정보 가져오기 (비회원이면 user는 null)
     const { data: { user } } = await supabase.auth.getUser();
 
     // Recipe를 DatabaseRecipe 형식으로 변환하고 user_id 추가
-    // user가 있으면 id를 넣고, 없으면 null을 넣습니다.
     const dbRecipes = newRecipes.map(recipe => ({
       ...recipeToDatabase(recipe),
       user_id: user?.id || null
     }));
-    console.log('Recipes to insert:', JSON.stringify(dbRecipes, null, 2));
 
-    const { data: insertedRecipes, error: insertError } = await supabase
-      .from('generated_recipes')
-      .insert(dbRecipes)
-      .select();
+    console.log('Recipes to insert via RPC:', JSON.stringify(dbRecipes, null, 2));
 
-    if (insertError) {
-      console.error('Database insert error:', insertError);
-      console.error('Error details:', {
-        message: insertError.message,
-        details: insertError.details,
-        hint: insertError.hint,
-        code: insertError.code
-      });
-      throw new Error('레시피를 데이터베이스에 저장하는 중 오류가 발생했습니다: ' + insertError.message);
+    // RPC 함수를 사용하여 각 레시피 삽입
+    const insertedIds: string[] = [];
+    for (const dbRecipe of dbRecipes) {
+      const { data: recipeId, error: insertError } = await supabase
+        .rpc('insert_recipe', { recipe_data: dbRecipe });
+
+      if (insertError) {
+        console.error('Database insert error (RPC):', insertError);
+        console.error('Error details:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+        throw new Error('레시피를 데이터베이스에 저장하는 중 오류가 발생했습니다: ' + insertError.message);
+      }
+
+      if (recipeId) {
+        insertedIds.push(recipeId);
+      }
     }
 
-    if (insertedRecipes && insertedRecipes.length > 0) {
-      console.log(`✅ Successfully saved ${insertedRecipes.length} recipes to database`);
-      console.log('Inserted recipe IDs:', insertedRecipes.map((r: any) => r.id));
+    if (insertedIds.length > 0) {
+      console.log(`✅ Successfully saved ${insertedIds.length} recipes to database via RPC`);
+      console.log('Inserted recipe IDs:', insertedIds);
     }
   }
 
