@@ -22,6 +22,7 @@ export interface Recipe {
 // 실제 DB에 저장되는 구조
 interface DatabaseRecipe {
   id: string;
+  user_id?: string;
   title: string;
   content: {
     description?: string;
@@ -293,9 +294,15 @@ export async function generateBatchRecipes(
   // 데이터베이스에 저장
   if (supabase) {
     console.log('Attempting to save recipes to database...');
-    
-    // Recipe를 DatabaseRecipe 형식으로 변환
-    const dbRecipes = newRecipes.map(recipeToDatabase);
+
+    // 현재 로그인한 유저 정보 가져오기
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Recipe를 DatabaseRecipe 형식으로 변환하고 user_id 추가
+    const dbRecipes = newRecipes.map(recipe => ({
+      ...recipeToDatabase(recipe),
+      user_id: user?.id || null
+    }));
     console.log('Recipes to insert:', JSON.stringify(dbRecipes, null, 2));
 
     const { data: insertedRecipes, error: insertError } = await supabase
