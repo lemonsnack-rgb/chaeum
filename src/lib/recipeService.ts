@@ -295,17 +295,14 @@ export async function generateBatchRecipes(
   if (supabase) {
     console.log('Attempting to save recipes to database...');
 
-    // 현재 로그인한 유저 정보 가져오기
+    // 현재 로그인한 유저 정보 가져오기 (비회원이면 user는 null)
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      throw new Error("로그인이 필요합니다.");
-    }
-
     // Recipe를 DatabaseRecipe 형식으로 변환하고 user_id 추가
+    // user가 있으면 id를 넣고, 없으면 null을 넣습니다.
     const dbRecipes = newRecipes.map(recipe => ({
       ...recipeToDatabase(recipe),
-      user_id: user.id
+      user_id: user?.id || null
     }));
     console.log('Recipes to insert:', JSON.stringify(dbRecipes, null, 2));
 
