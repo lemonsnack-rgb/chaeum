@@ -2,9 +2,9 @@ import { supabase } from './supabase';
 import { genAI } from './gemini';
 import { generateRecipePrompt } from '../ai/recipe_generation_prompt';
 
+// 코드에서 사용하는 Recipe 인터페이스 (기존 유지)
 export interface Recipe {
   id: string;
-  user_id: string;
   title: string;
   description?: string;
   main_ingredients: string[];
@@ -17,7 +17,28 @@ export interface Recipe {
   cooking_time: number;
   servings: number;
   created_at: string;
-  updated_at: string;
+}
+
+// 실제 DB에 저장되는 구조
+interface DatabaseRecipe {
+  id: string;
+  title: string;
+  content: {
+    description?: string;
+    ingredients_detail: IngredientDetail[];
+    instructions: string[];
+    nutrition: NutritionInfo;
+    deep_info: DeepInfo;
+    servings: number;
+  };
+  difficulty: string;
+  cooking_time_min: number;
+  cooking_time: string;
+  calories_per_serving: number;
+  calorie_signal: string;
+  theme_tags: string[];
+  main_ingredients: string[];
+  created_at: string;
 }
 
 export interface RecipeMeta {
@@ -52,6 +73,62 @@ export interface DeepInfo {
   storage?: string;
 }
 
+// Recipe를 DatabaseRecipe로 변환
+function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
+  return {
+    id: recipe.id,
+    title: recipe.title,
+    content: {
+      description: recipe.description,
+      ingredients_detail: recipe.ingredients_detail,
+      instructions: recipe.instructions,
+      nutrition: recipe.nutrition,
+      deep_info: recipe.deep_info,
+      servings: recipe.servings,
+    },
+    difficulty: recipe.meta?.difficulty || '중급',
+    cooking_time_min: recipe.meta?.cooking_time_min || recipe.cooking_time || 30,
+    cooking_time: `${recipe.meta?.cooking_time_min || recipe.cooking_time || 30}분`,
+    calories_per_serving: recipe.meta?.calories_per_serving || recipe.nutrition?.calories || 0,
+    calorie_signal: recipe.meta?.calorie_signal || '🟢',
+    theme_tags: recipe.theme_tags,
+    main_ingredients: recipe.main_ingredients,
+    created_at: recipe.created_at,
+  };
+}
+
+// DatabaseRecipe를 Recipe로 변환
+function databaseToRecipe(dbRecipe: any): Recipe {
+  return {
+    id: dbRecipe.id,
+    title: dbRecipe.title,
+    description: dbRecipe.content?.description || '',
+    main_ingredients: dbRecipe.main_ingredients || [],
+    theme_tags: dbRecipe.theme_tags || [],
+    ingredients_detail: dbRecipe.content?.ingredients_detail || [],
+    instructions: dbRecipe.content?.instructions || [],
+    meta: {
+      difficulty: dbRecipe.difficulty,
+      cooking_time_min: dbRecipe.cooking_time_min,
+      calories_per_serving: dbRecipe.calories_per_serving,
+      protein: dbRecipe.content?.nutrition?.protein || 0,
+      fat: dbRecipe.content?.nutrition?.fat || 0,
+      carbohydrates: dbRecipe.content?.nutrition?.carbohydrates || 0,
+      calorie_signal: dbRecipe.calorie_signal,
+    },
+    nutrition: dbRecipe.content?.nutrition || {
+      calories: dbRecipe.calories_per_serving || 0,
+      protein: 0,
+      fat: 0,
+      carbohydrates: 0,
+    },
+    deep_info: dbRecipe.content?.deep_info || {},
+    cooking_time: dbRecipe.cooking_time_min || 30,
+    servings: dbRecipe.content?.servings || 2,
+    created_at: dbRecipe.created_at,
+  };
+}
+
 export async function generateBatchRecipes(
   ingredientNames: string[],
   servings: number = 2,
@@ -64,25 +141,21 @@ export async function generateBatchRecipes(
   const sortedIngredients = [...ingredientNames].sort();
   const cachedRecipes: Recipe[] = [];
 
+  // 캐시된 레시피 확인
   if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: cached, error: cacheError } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .contains('main_ingredients', sortedIngredients)
+      .order('created_at', { ascending: false })
+      .limit(3);
 
-    if (session) {
-      const { data: cached, error: cacheError } = await supabase
-        .from('generated_recipes')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .contains('main_ingredients', sortedIngredients)
-        .order('created_at', { ascending: false })
-        .limit(3);
+    if (cacheError) {
+      console.error('Cache lookup error:', cacheError);
+    }
 
-      if (cacheError) {
-        console.error('Cache lookup error:', cacheError);
-      }
-
-      if (cached && cached.length > 0) {
-        cachedRecipes.push(...(cached as Recipe[]));
-      }
+    if (cached && cached.length > 0) {
+      cachedRecipes.push(...cached.map(databaseToRecipe));
     }
   }
 
@@ -90,6 +163,7 @@ export async function generateBatchRecipes(
     return cachedRecipes.slice(0, 3);
   }
 
+  // 사용자 프로필 정보 가져오기 (알레르기, 식단 선호)
   const allergies: string[] = [];
   const dietaryPreferences: string[] = [];
 
@@ -155,14 +229,6 @@ export async function generateBatchRecipes(
 
   console.log(`Successfully parsed ${recipesData.length} recipes`);
 
-  let userId: string | null = null;
-  if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      userId = session.user.id;
-    }
-  }
-
   const newRecipes: Recipe[] = [];
 
   for (let i = 0; i < recipesData.length; i++) {
@@ -180,7 +246,6 @@ export async function generateBatchRecipes(
 
     const recipe: Recipe = {
       id: crypto.randomUUID(),
-      user_id: userId || crypto.randomUUID(), // Generate anonymous user ID
       title: recipeData.title || 'Untitled Recipe',
       description: recipeData.description || '',
       main_ingredients: Array.isArray(recipeData.main_ingredients)
@@ -206,7 +271,6 @@ export async function generateBatchRecipes(
       cooking_time: recipeData.meta?.cooking_time_min || 30,
       servings: servings,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     };
 
     console.log(`Successfully created recipe object ${i + 1}:`, {
@@ -226,13 +290,17 @@ export async function generateBatchRecipes(
     throw new Error('Failed to parse any valid recipes from API response');
   }
 
+  // 데이터베이스에 저장
   if (supabase) {
     console.log('Attempting to save recipes to database...');
-    console.log('Recipes to insert:', JSON.stringify(newRecipes, null, 2));
+    
+    // Recipe를 DatabaseRecipe 형식으로 변환
+    const dbRecipes = newRecipes.map(recipeToDatabase);
+    console.log('Recipes to insert:', JSON.stringify(dbRecipes, null, 2));
 
     const { data: insertedRecipes, error: insertError } = await supabase
       .from('generated_recipes')
-      .insert(newRecipes)
+      .insert(dbRecipes)
       .select();
 
     if (insertError) {
@@ -267,24 +335,20 @@ export async function generateRecipeWithCaching(
 
   const sortedIngredients = [...ingredientNames].sort();
 
+  // 캐시 확인
   if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: cachedRecipe, error: cacheError } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .contains('main_ingredients', sortedIngredients)
+      .maybeSingle();
 
-    if (session) {
-      const { data: cachedRecipe, error: cacheError } = await supabase
-        .from('generated_recipes')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .contains('main_ingredients', sortedIngredients)
-        .maybeSingle();
+    if (cacheError) {
+      console.error('Cache lookup error:', cacheError);
+    }
 
-      if (cacheError) {
-        console.error('Cache lookup error:', cacheError);
-      }
-
-      if (cachedRecipe) {
-        return cachedRecipe as Recipe;
-      }
+    if (cachedRecipe) {
+      return databaseToRecipe(cachedRecipe);
     }
   }
 
@@ -312,6 +376,8 @@ export async function generateRecipeWithCaching(
   const prompt = `## 역할 및 목표
 당신은 사용자의 냉장고 재료를 기반으로 안전하고 영양가 있으며, SEO에 최적화된 레시피를 생성하는 전문 셰프 AI입니다. 응답은 반드시 지정된 JSON 스키마를 **절대적으로 준수**해야 합니다. 다른 텍스트 설명 없이 **오직 JSON 객체만** 반환하십시오.
 
+**레시피 명칭 규칙: 모든 레시피 제목과 설명은 반드시 한국어로만 작성하십시오. 영어 명칭이나 영어 번역을 절대 포함하지 마십시오. (예: "김치볶음밥 (Kimchi Fried Rice)" ✗, "김치볶음밥" ✓)**
+
 ## 입력 재료 및 조건
 1. 사용자 보유 재료 (필수 사용): ${sortedIngredients.join(', ')}
 2. 인분 기준: ${servings}인분
@@ -322,7 +388,7 @@ ${dietaryPreferences.length > 0 ? `${(themePreference ? 1 : 0) + (allergies.leng
 
 ## 출력 상세 요구사항
 1. **제외 재료(알레르기)가 포함된 요리는 절대 생성하지 마십시오.**
-2. 제외 재료로 인해 레시피가 변경된 경우, 반드시 합리적인 대체 재료를 제안하고 그 이유를 명시하십시오.
+2. 제외 재료로 인해 레시피가 변경된 경우, 반드시 합리적한 대체 재료를 제안하고 그 이유를 명시하십시오.
 3. 생성된 레시피는 ${servings}인분에 맞춰 모든 재료 양이 정확하게 스케일링되어야 합니다.
 4. 요리 완료 후, 1인분 기준 칼로리, 단백질, 지방, 탄수화물 정보를 분석하여 JSON에 포함하십시오.
 5. 레시피 메타 데이터로 '테마 태그'(예: [해장, 비오는날, 한식])를 3개 이상 반드시 부여하십시오.${themePreference ? ` 사용자가 선호한 테마(${themePreference})를 반드시 반영하세요.` : ''}
@@ -335,8 +401,8 @@ ${dietaryPreferences.length > 0 ? `${(themePreference ? 1 : 0) + (allergies.leng
 
 ## 출력 JSON 스키마 (절대 준수)
 {
-  "title": "레시피 제목",
-  "description": "한 줄 요약",
+  "title": "레시피 제목 (한국어로만 작성, 영어 명칭 절대 불가)",
+  "description": "한 줄 요약 (한국어로만 작성)",
   "meta": {
     "difficulty": "초급/중급/고급",
     "cooking_time_min": 30,
@@ -376,7 +442,6 @@ JSON 외에 다른 텍스트는 절대 포함하지 마십시오.`;
 
   const newRecipe: Recipe = {
     id: crypto.randomUUID(),
-    user_id: 'anonymous',
     title: recipeData.title,
     description: recipeData.description,
     main_ingredients: recipeData.main_ingredients || sortedIngredients,
@@ -394,7 +459,6 @@ JSON 외에 다른 텍스트는 절대 포함하지 마십시오.`;
     cooking_time: recipeData.meta?.cooking_time_min || 30,
     servings: servings,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   };
 
   return newRecipe;
@@ -405,15 +469,9 @@ export async function getUserRecipes(): Promise<Recipe[]> {
     return [];
   }
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return [];
-  }
-
   const { data, error } = await supabase
     .from('generated_recipes')
     .select('*')
-    .eq('user_id', session.user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -421,7 +479,7 @@ export async function getUserRecipes(): Promise<Recipe[]> {
     return [];
   }
 
-  return (data || []) as Recipe[];
+  return (data || []).map(databaseToRecipe);
 }
 
 export async function deleteRecipe(recipeId: string): Promise<void> {
@@ -536,7 +594,7 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
       return [];
     }
 
-    return (data || []) as Recipe[];
+    return (data || []).map(databaseToRecipe);
   }
 
   const { data, error } = await supabase
@@ -551,16 +609,11 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
     return [];
   }
 
-  return (data || []) as Recipe[];
+  return (data || []).map(databaseToRecipe);
 }
 
 export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
   if (!supabase) {
-    return [];
-  }
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
     return [];
   }
 
@@ -573,7 +626,6 @@ export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
   const { data, error } = await supabase
     .from('user_recipes')
     .select('*')
-    .eq('user_id', session.user.id)
     .or(`title.ilike.%${query}%,main_ingredients.cs.{${query}},theme_tags.cs.{${query}}`)
     .order('created_at', { ascending: false });
 
@@ -582,5 +634,5 @@ export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
     return [];
   }
 
-  return (data || []) as Recipe[];
+  return (data || []).map(databaseToRecipe);
 }
