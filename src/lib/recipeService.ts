@@ -180,7 +180,7 @@ export async function generateBatchRecipes(
 
     const recipe: Recipe = {
       id: crypto.randomUUID(),
-      user_id: userId || 'anonymous',
+      user_id: userId || crypto.randomUUID(), // Generate anonymous user ID
       title: recipeData.title || 'Untitled Recipe',
       description: recipeData.description || '',
       main_ingredients: Array.isArray(recipeData.main_ingredients)
@@ -226,7 +226,7 @@ export async function generateBatchRecipes(
     throw new Error('Failed to parse any valid recipes from API response');
   }
 
-  if (supabase && userId) {
+  if (supabase) {
     console.log('Attempting to save recipes to database...');
     console.log('Recipes to insert:', JSON.stringify(newRecipes, null, 2));
 
@@ -250,8 +250,6 @@ export async function generateBatchRecipes(
       console.log(`✅ Successfully saved ${insertedRecipes.length} recipes to database`);
       console.log('Inserted recipe IDs:', insertedRecipes.map(r => r.id));
     }
-  } else if (!userId) {
-    console.log('User not logged in - skipping database save');
   }
 
   const allRecipes = [...cachedRecipes, ...newRecipes];
