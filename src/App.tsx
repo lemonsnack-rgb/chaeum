@@ -117,6 +117,13 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // 프로필 탭 활성화 시 최신 데이터 로드
+  useEffect(() => {
+    if (activeTab === 'profile' && isAuthenticated) {
+      loadUserProfile();
+    }
+  }, [activeTab, isAuthenticated]);
+
   async function checkAuth() {
     if (!supabase) return;
     const user = await getCurrentUser();
