@@ -71,7 +71,22 @@ export async function ensureUserProfile(): Promise<void> {
  * 알레르기 정보 조회
  */
 export async function getUserAllergies(): Promise<string[]> {
-  const profile = await getUserProfile();
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
+  // DB에서 직접 최신 데이터 조회
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('allergies')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
   return profile?.allergies || [];
 }
 
@@ -201,7 +216,22 @@ export async function removeAllergy(allergyName: string): Promise<void> {
  * 편식 정보 조회
  */
 export async function getUserDietaryPreferences(): Promise<string[]> {
-  const profile = await getUserProfile();
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
+  // DB에서 직접 최신 데이터 조회
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('dietary_preferences')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
   return profile?.dietary_preferences || [];
 }
 
