@@ -125,16 +125,19 @@ export async function addAllergy(allergyName: string): Promise<void> {
   console.log('[profileService] 세션 확인됨:', session.user.id);
 
   console.log('[profileService] profiles 테이블 업데이트 시도');
-  const { error } = await supabase
+  const { data: updatedProfile, error } = await supabase
     .from('profiles')
     .update({ allergies: updatedAllergies })
-    .eq('id', session.user.id);
+    .eq('id', session.user.id)
+    .select()
+    .single();
 
   if (error) {
     console.error('[profileService] 업데이트 에러:', error);
     throw new Error('알레르기 정보 추가 중 오류가 발생했습니다');
   }
 
+  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
   console.log('[profileService] addAllergy 완료');
 }
 
@@ -142,6 +145,8 @@ export async function addAllergy(allergyName: string): Promise<void> {
  * 알레르기 삭제
  */
 export async function removeAllergy(allergyName: string): Promise<void> {
+  console.log('[profileService] removeAllergy 시작:', allergyName);
+
   if (!supabase) {
     throw new Error('Supabase not configured');
   }
@@ -157,21 +162,27 @@ export async function removeAllergy(allergyName: string): Promise<void> {
   const updatedAllergies = (profile.allergies || []).filter(
     (a) => a !== allergyName
   );
+  console.log('[profileService] 삭제 후 알레르기:', updatedAllergies);
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     throw new Error('로그인이 필요합니다');
   }
 
-  const { error } = await supabase
+  const { data: updatedProfile, error } = await supabase
     .from('profiles')
     .update({ allergies: updatedAllergies })
-    .eq('id', session.user.id);
+    .eq('id', session.user.id)
+    .select()
+    .single();
 
   if (error) {
-    console.error('Error removing allergy:', error);
+    console.error('[profileService] 삭제 에러:', error);
     throw new Error('알레르기 정보 삭제 중 오류가 발생했습니다');
   }
+
+  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
+  console.log('[profileService] removeAllergy 완료');
 }
 
 /**
@@ -186,6 +197,8 @@ export async function getUserDietaryPreferences(): Promise<string[]> {
  * 편식 추가
  */
 export async function addDietaryPreference(prefName: string): Promise<void> {
+  console.log('[profileService] addDietaryPreference 시작:', prefName);
+
   if (!supabase) {
     throw new Error('Supabase not configured');
   }
@@ -209,27 +222,35 @@ export async function addDietaryPreference(prefName: string): Promise<void> {
   }
 
   const updatedPrefs = [...currentPrefs, trimmed];
+  console.log('[profileService] 업데이트할 편식:', updatedPrefs);
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     throw new Error('로그인이 필요합니다');
   }
 
-  const { error } = await supabase
+  const { data: updatedProfile, error } = await supabase
     .from('profiles')
     .update({ dietary_preferences: updatedPrefs })
-    .eq('id', session.user.id);
+    .eq('id', session.user.id)
+    .select()
+    .single();
 
   if (error) {
-    console.error('Error adding dietary preference:', error);
+    console.error('[profileService] 편식 추가 에러:', error);
     throw new Error('편식 정보 추가 중 오류가 발생했습니다');
   }
+
+  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
+  console.log('[profileService] addDietaryPreference 완료');
 }
 
 /**
  * 편식 삭제
  */
 export async function removeDietaryPreference(prefName: string): Promise<void> {
+  console.log('[profileService] removeDietaryPreference 시작:', prefName);
+
   if (!supabase) {
     throw new Error('Supabase not configured');
   }
@@ -245,19 +266,25 @@ export async function removeDietaryPreference(prefName: string): Promise<void> {
   const updatedPrefs = (profile.dietary_preferences || []).filter(
     (p) => p !== prefName
   );
+  console.log('[profileService] 삭제 후 편식:', updatedPrefs);
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     throw new Error('로그인이 필요합니다');
   }
 
-  const { error } = await supabase
+  const { data: updatedProfile, error } = await supabase
     .from('profiles')
     .update({ dietary_preferences: updatedPrefs })
-    .eq('id', session.user.id);
+    .eq('id', session.user.id)
+    .select()
+    .single();
 
   if (error) {
-    console.error('Error removing dietary preference:', error);
+    console.error('[profileService] 편식 삭제 에러:', error);
     throw new Error('편식 정보 삭제 중 오류가 발생했습니다');
   }
+
+  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
+  console.log('[profileService] removeDietaryPreference 완료');
 }

@@ -12,7 +12,8 @@
       "Bash(for i in {1..18})",
       "Bash(do echo '⏳ 확인 중... ($i/18)')",
       "Bash(exit 0)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(do echo '⏳ 배포 확인 중... ($i/18)')"
     ],
     "deny": [],
     "ask": []
