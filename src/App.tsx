@@ -374,6 +374,7 @@ function App() {
                     recipes={recipes}
                     onSelectRecipe={setSelectedRecipe}
                     onDeleteRecipe={handleDeleteRecipe}
+                    hideDelete={true}
                   />
                 </section>
               </>
@@ -578,7 +579,7 @@ function App() {
           onGenerate={handleGenerateWithOptions}
         />
       )}
-      <LoadingModal isOpen={generatingRecipe} message="AI가 맞춤 레시피를 생성하고 있습니다..." />
+      <LoadingModal isOpen={generatingRecipe} message="AI가 레시피를 찾고 있습니다..." />
     </div>
   );
 }

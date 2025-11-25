@@ -13,7 +13,7 @@ const steps = [
   { id: 4, text: '거의 완성되었습니다!', icon: Check, duration: 0 },
 ];
 
-export function LoadingModal({ isOpen, message = '레시피를 생성하는 중입니다...' }: LoadingModalProps) {
+export function LoadingModal({ isOpen, message = 'AI가 레시피를 찾고 있습니다...' }: LoadingModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
 
@@ -58,7 +58,7 @@ export function LoadingModal({ isOpen, message = '레시피를 생성하는 중�
       <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
         <div className="text-center mb-8">
           <Loader2 className="w-20 h-20 text-primary animate-spin mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">레시피 생성 중</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">레시피 찾는 중</h3>
           <p className="text-sm text-gray-600">{message}</p>
         </div>
 
@@ -125,7 +125,7 @@ export function LoadingModal({ isOpen, message = '레시피를 생성하는 중�
 
         <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
           <p className="text-sm text-blue-800 text-center font-medium">
-            💡 AI가 생성한 레시피는 자동으로 저장됩니다
+            💡 AI가 찾은 레시피는 자동으로 저장됩니다
           </p>
         </div>
       </div>
