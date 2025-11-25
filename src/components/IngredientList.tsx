@@ -56,54 +56,56 @@ export function IngredientList({ ingredients, onUpdate, onDelete }: IngredientLi
           className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all"
         >
           {editingId === ingredient.id ? (
-            <div className="flex gap-3 items-center">
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="재료명"
-                autoFocus
-              />
-              <select
-                value={editQuantity}
-                onChange={(e) => setEditQuantity(e.target.value)}
-                className="w-28 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white text-sm"
-              >
-                <option value="">수량</option>
-                <optgroup label="개수">
-                  <option value="1개">1개</option>
-                  <option value="2개">2개</option>
-                  <option value="3개">3개</option>
-                  <option value="4개">4개</option>
-                  <option value="5개">5개</option>
-                </optgroup>
-                <optgroup label="중량">
-                  <option value="주멱만큼">주멱만큼</option>
-                  <option value="손바닥만큼">손바닥만큼</option>
-                  <option value="100g">약 100g</option>
-                  <option value="200g">약 200g</option>
-                  <option value="300g">약 300g</option>
-                  <option value="500g">약 500g</option>
-                </optgroup>
-                <optgroup label="기타">
-                  <option value="적당량">적당량</option>
-                  <option value="조금">조금</option>
-                  <option value="많이">많이</option>
-                </optgroup>
-              </select>
+            <div className="space-y-2">
               <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                  placeholder="재료명"
+                  autoFocus
+                />
+                <select
+                  value={editQuantity}
+                  onChange={(e) => setEditQuantity(e.target.value)}
+                  className="w-24 px-2 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white text-xs"
+                >
+                  <option value="">수량</option>
+                  <optgroup label="개수">
+                    <option value="1개">1개</option>
+                    <option value="2개">2개</option>
+                    <option value="3개">3개</option>
+                    <option value="4개">4개</option>
+                    <option value="5개">5개</option>
+                  </optgroup>
+                  <optgroup label="중량">
+                    <option value="주멱만큼">주멱만큼</option>
+                    <option value="손바닥만큼">손바닥만큼</option>
+                    <option value="100g">약 100g</option>
+                    <option value="200g">약 200g</option>
+                    <option value="300g">약 300g</option>
+                    <option value="500g">약 500g</option>
+                  </optgroup>
+                  <optgroup label="기타">
+                    <option value="적당량">적당량</option>
+                    <option value="조금">조금</option>
+                    <option value="많이">많이</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => saveEdit(ingredient.id)}
-                  className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
                 >
-                  <Check className="w-4 h-4" />
+                  저장
                 </button>
                 <button
                   onClick={cancelEdit}
-                  className="p-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
                 >
-                  <X className="w-4 h-4" />
+                  취소
                 </button>
               </div>
             </div>
