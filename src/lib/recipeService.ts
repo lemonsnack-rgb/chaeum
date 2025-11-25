@@ -406,17 +406,24 @@ export async function generateRecipeWithCaching(
 
 **레시피 명칭 규칙: 모든 레시피 제목과 설명은 반드시 한국어로만 작성하십시오. 영어 명칭이나 영어 번역을 절대 포함하지 마십시오. (예: "김치볶음밥 (Kimchi Fried Rice)" ✗, "김치볶음밥" ✓)**
 
+## 🚨 최우선 안전 규칙 (위반 절대 금지)
+${allergies.length > 0 ? `**[필수 안전 조건] 다음 재료는 사용자의 알레르기 정보로 레시피에 절대 포함할 수 없습니다: ${allergies.join(', ')}**
+- 이 재료들이 냉장고에 있더라도 **절대 사용하지 마십시오.**
+- 레시피의 모든 재료(주재료, 부재료, 양념, 소스 등)를 생성 후 반드시 이 리스트와 대조하십시오.
+- 만약 정식 레시피에 이 재료가 필요하다면, **반드시 안전한 대체 재료**를 사용하고 deep_info.substitutions에 대체 이유를 명시하십시오.
+- 예시: 견과류 알레르기 시 "호두 대신 해바라기씨 사용 (견과류 알레르기 대응)"
+` : ''}
+${dietaryPreferences.length > 0 ? `**[식단 선호] 가능한 다음 재료는 최소화하거나 피해주세요: ${dietaryPreferences.join(', ')}**
+- 부득이하게 사용할 경우 대체 방안을 제시하세요.
+` : ''}
+
 ## 입력 재료 및 조건
 1. 사용자 보유 재료 (필수 사용): ${sortedIngredients.join(', ')}
 2. 인분 기준: ${servings}인분
 3. 레시피 모드: 가성비 모드
 ${themePreference ? `4. 테마 선호: ${themePreference}` : ''}
-${allergies.length > 0 ? `${themePreference ? '5' : '4'}. **[필수 안전 조건] 제외 재료 (알레르기 필터): ${allergies.join(', ')}**` : ''}
-${dietaryPreferences.length > 0 ? `${(themePreference ? 1 : 0) + (allergies.length > 0 ? 1 : 0) + 4}. 식단 선호: ${dietaryPreferences.join(', ')}` : ''}
 
 ## 출력 상세 요구사항
-1. **제외 재료(알레르기)가 포함된 요리는 절대 생성하지 마십시오.**
-2. 제외 재료로 인해 레시피가 변경된 경우, 반드시 합리적한 대체 재료를 제안하고 그 이유를 명시하십시오.
 3. 생성된 레시피는 ${servings}인분에 맞춰 모든 재료 양이 정확하게 스케일링되어야 합니다.
 4. 요리 완료 후, 1인분 기준 칼로리, 단백질, 지방, 탄수화물 정보를 분석하여 JSON에 포함하십시오.
 5. 레시피 메타 데이터로 '테마 태그'(예: [해장, 비오는날, 한식])를 3개 이상 반드시 부여하십시오.${themePreference ? ` 사용자가 선호한 테마(${themePreference})를 반드시 반영하세요.` : ''}
