@@ -79,44 +79,63 @@ export async function getUserAllergies(): Promise<string[]> {
  * 알레르기 추가
  */
 export async function addAllergy(allergyName: string): Promise<void> {
+  console.log('[profileService] addAllergy 시작:', allergyName);
+
   if (!supabase) {
+    console.error('[profileService] Supabase not configured');
     throw new Error('Supabase not configured');
   }
 
   const trimmed = allergyName.trim();
   if (!trimmed) {
+    console.error('[profileService] Empty allergy name');
     throw new Error('Allergy name cannot be empty');
   }
 
   // 프로필이 없으면 자동 생성
+  console.log('[profileService] ensureUserProfile 호출');
   await ensureUserProfile();
+  console.log('[profileService] ensureUserProfile 완료');
 
+  console.log('[profileService] getUserProfile 호출');
   const profile = await getUserProfile();
+  console.log('[profileService] 프로필 조회 결과:', profile);
+
   if (!profile) {
+    console.error('[profileService] 프로필 조회 실패');
     throw new Error('Failed to create or retrieve user profile');
   }
 
   const currentAllergies = profile.allergies || [];
+  console.log('[profileService] 현재 알레르기:', currentAllergies);
+
   if (currentAllergies.includes(trimmed)) {
+    console.warn('[profileService] 중복된 알레르기:', trimmed);
     throw new Error('이미 등록된 알레르기입니다');
   }
 
   const updatedAllergies = [...currentAllergies, trimmed];
+  console.log('[profileService] 업데이트할 알레르기:', updatedAllergies);
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
+    console.error('[profileService] 세션 없음');
     throw new Error('로그인이 필요합니다');
   }
+  console.log('[profileService] 세션 확인됨:', session.user.id);
 
+  console.log('[profileService] profiles 테이블 업데이트 시도');
   const { error } = await supabase
     .from('profiles')
     .update({ allergies: updatedAllergies })
     .eq('id', session.user.id);
 
   if (error) {
-    console.error('Error adding allergy:', error);
+    console.error('[profileService] 업데이트 에러:', error);
     throw new Error('알레르기 정보 추가 중 오류가 발생했습니다');
   }
+
+  console.log('[profileService] addAllergy 완료');
 }
 
 /**

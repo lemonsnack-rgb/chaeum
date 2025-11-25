@@ -186,11 +186,15 @@ function App() {
   }
 
   async function handleAddAllergy(allergyName: string) {
+    console.log('[App] handleAddAllergy 호출됨:', allergyName);
     try {
+      console.log('[App] addAllergy 호출 전');
       await addAllergy(allergyName);
+      console.log('[App] addAllergy 성공, 프로필 재로드');
       await loadUserProfile();
+      console.log('[App] 프로필 재로드 완료');
     } catch (error: any) {
-      console.error('Failed to add allergy:', error);
+      console.error('[App] Failed to add allergy:', error);
       throw error; // AllergyManager에서 에러 메시지 표시
     }
   }

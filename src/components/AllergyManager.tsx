@@ -24,26 +24,39 @@ export function AllergyManager({
   const [isAdding, setIsAdding] = useState(false);
 
   const handleToggle = async (item: string) => {
+    console.log('[AllergyManager] handleToggle 호출됨:', item);
+    console.log('[AllergyManager] 현재 items:', items);
     try {
       if (items.includes(item)) {
+        console.log('[AllergyManager] 제거 시도:', item);
         await onRemove(item);
       } else {
+        console.log('[AllergyManager] 추가 시도:', item);
         await onAdd(item);
       }
+      console.log('[AllergyManager] 성공');
     } catch (error: any) {
+      console.error('[AllergyManager] 에러 발생:', error);
       alert(error.message || '오류가 발생했습니다.');
     }
   };
 
   const handleAddCustom = async () => {
     const trimmed = customItem.trim();
-    if (!trimmed) return;
+    console.log('[AllergyManager] handleAddCustom 호출됨:', trimmed);
+    if (!trimmed) {
+      console.log('[AllergyManager] 빈 문자열, 종료');
+      return;
+    }
 
     setIsAdding(true);
     try {
+      console.log('[AllergyManager] 커스텀 추가 시도:', trimmed);
       await onAdd(trimmed);
       setCustomItem('');
+      console.log('[AllergyManager] 커스텀 추가 성공');
     } catch (error: any) {
+      console.error('[AllergyManager] 커스텀 추가 에러:', error);
       alert(error.message || '추가 중 오류가 발생했습니다.');
     } finally {
       setIsAdding(false);
