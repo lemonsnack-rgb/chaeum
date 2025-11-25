@@ -5,7 +5,9 @@
       "Bash(curl:*)",
       "Bash(npm install:*)",
       "Bash(npm cache clean:*)",
-      "Bash(git merge:*)"
+      "Bash(npm run dev:*)",
+      "Bash(if exist node_modules rmdir /s /q node_modules)",
+      "Bash(if exist package-lock.json del package-lock.json)"
     ],
     "deny": [],
     "ask": []
