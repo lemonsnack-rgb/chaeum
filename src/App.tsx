@@ -226,8 +226,15 @@ function App() {
     try {
       setShowRecipeOptions(false);
       setGeneratingRecipe(true);
+
       const ingredientNames = ingredients.map(i => i.name);
-      const generatedRecipes = await generateBatchRecipes(ingredientNames, servings, theme);
+
+      // 최소 2초간 로딩 모달 표시 (사용자 경험 개선)
+      const [generatedRecipes] = await Promise.all([
+        generateBatchRecipes(ingredientNames, servings, theme),
+        new Promise(resolve => setTimeout(resolve, 2000))
+      ]);
+
       setRecommendedRecipes(generatedRecipes);
       setActiveTab('recipe');
       setRecipeSubTab('recommended');
