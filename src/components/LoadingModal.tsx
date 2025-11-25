@@ -7,10 +7,10 @@ interface LoadingModalProps {
 }
 
 const steps = [
-  { id: 1, text: '재료 분석 중', icon: Brain, duration: 2000 },
-  { id: 2, text: 'AI가 최적의 레시피 찾는 중', icon: Sparkles, duration: 3000 },
-  { id: 3, text: '레시피 맞춤 제작 중', icon: ChefHat, duration: 2500 },
-  { id: 4, text: '거의 완성!', icon: Check, duration: 1500 },
+  { id: 1, text: '재료를 분석하고 있습니다...', icon: Brain, duration: 2000 },
+  { id: 2, text: '인공지능이 최적의 레시피를 찾는 중입니다...', icon: Sparkles, duration: 4000 },
+  { id: 3, text: '레시피를 맞춤 제작하고 있습니다...', icon: ChefHat, duration: 3000 },
+  { id: 4, text: '거의 완성되었습니다!', icon: Check, duration: 0 },
 ];
 
 export function LoadingModal({ isOpen, message = '레시피를 생성하는 중입니다...' }: LoadingModalProps) {
