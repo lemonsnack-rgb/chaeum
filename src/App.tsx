@@ -186,23 +186,43 @@ function App() {
   }
 
   async function handleAddAllergy(allergyName: string) {
-    await addAllergy(allergyName);
-    await loadUserProfile();
+    try {
+      await addAllergy(allergyName);
+      await loadUserProfile();
+    } catch (error: any) {
+      console.error('Failed to add allergy:', error);
+      throw error; // AllergyManager에서 에러 메시지 표시
+    }
   }
 
   async function handleRemoveAllergy(allergyName: string) {
-    await removeAllergy(allergyName);
-    await loadUserProfile();
+    try {
+      await removeAllergy(allergyName);
+      await loadUserProfile();
+    } catch (error: any) {
+      console.error('Failed to remove allergy:', error);
+      throw error;
+    }
   }
 
   async function handleAddDietaryPreference(prefName: string) {
-    await addDietaryPreference(prefName);
-    await loadUserProfile();
+    try {
+      await addDietaryPreference(prefName);
+      await loadUserProfile();
+    } catch (error: any) {
+      console.error('Failed to add dietary preference:', error);
+      throw error;
+    }
   }
 
   async function handleRemoveDietaryPreference(prefName: string) {
-    await removeDietaryPreference(prefName);
-    await loadUserProfile();
+    try {
+      await removeDietaryPreference(prefName);
+      await loadUserProfile();
+    } catch (error: any) {
+      console.error('Failed to remove dietary preference:', error);
+      throw error;
+    }
   }
 
   async function handleSaveUserRecipe(recipe: Recipe) {

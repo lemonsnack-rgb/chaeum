@@ -7,7 +7,12 @@
       "Bash(npm cache clean:*)",
       "Bash(npm run dev:*)",
       "Bash(if exist node_modules rmdir /s /q node_modules)",
-      "Bash(if exist package-lock.json del package-lock.json)"
+      "Bash(if exist package-lock.json del package-lock.json)",
+      "Bash(timeout 90 bash -c 'while true; do curl -s -o /dev/null -w \"\"%{http_code}\"\" https://oneulfridge.com 2>/dev/null | grep -q \"\"200\"\" && echo \"\"✅ Deployment successful!\"\" && break || echo \"\"⏳ Waiting for deployment...\"\"; sleep 10; done')",
+      "Bash(for i in {1..18})",
+      "Bash(do echo '⏳ 확인 중... ($i/18)')",
+      "Bash(exit 0)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
