@@ -189,10 +189,11 @@ function App() {
     console.log('[App] handleAddAllergy 호출됨:', allergyName);
     try {
       console.log('[App] addAllergy 호출 전');
-      await addAllergy(allergyName);
-      console.log('[App] addAllergy 성공, 프로필 재로드');
-      await loadUserProfile();
-      console.log('[App] 프로필 재로드 완료');
+      const updatedAllergies = await addAllergy(allergyName);
+      console.log('[App] addAllergy 성공, 반환된 allergies:', updatedAllergies);
+      // DB 재조회 없이 직접 상태 업데이트
+      setAllergies(updatedAllergies);
+      console.log('[App] 상태 업데이트 완료');
     } catch (error: any) {
       console.error('[App] Failed to add allergy:', error);
       throw error; // AllergyManager에서 에러 메시지 표시
@@ -201,8 +202,8 @@ function App() {
 
   async function handleRemoveAllergy(allergyName: string) {
     try {
-      await removeAllergy(allergyName);
-      await loadUserProfile();
+      const updatedAllergies = await removeAllergy(allergyName);
+      setAllergies(updatedAllergies);
     } catch (error: any) {
       console.error('Failed to remove allergy:', error);
       throw error;
@@ -211,8 +212,8 @@ function App() {
 
   async function handleAddDietaryPreference(prefName: string) {
     try {
-      await addDietaryPreference(prefName);
-      await loadUserProfile();
+      const updatedPrefs = await addDietaryPreference(prefName);
+      setDietaryPreferences(updatedPrefs);
     } catch (error: any) {
       console.error('Failed to add dietary preference:', error);
       throw error;
@@ -221,8 +222,8 @@ function App() {
 
   async function handleRemoveDietaryPreference(prefName: string) {
     try {
-      await removeDietaryPreference(prefName);
-      await loadUserProfile();
+      const updatedPrefs = await removeDietaryPreference(prefName);
+      setDietaryPreferences(updatedPrefs);
     } catch (error: any) {
       console.error('Failed to remove dietary preference:', error);
       throw error;

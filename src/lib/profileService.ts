@@ -94,7 +94,7 @@ export async function getUserAllergies(): Promise<string[]> {
 /**
  * 알레르기 추가
  */
-export async function addAllergy(allergyName: string): Promise<void> {
+export async function addAllergy(allergyName: string): Promise<string[]> {
   console.log('[profileService] addAllergy 시작:', allergyName);
 
   if (!supabase) {
@@ -159,13 +159,14 @@ export async function addAllergy(allergyName: string): Promise<void> {
   }
 
   console.log('[profileService] 업데이트된 프로필:', updatedProfile);
-  console.log('[profileService] addAllergy 완료');
+  console.log('[profileService] addAllergy 완료, 반환값:', updatedAllergies);
+  return updatedAllergies;
 }
 
 /**
  * 알레르기 삭제
  */
-export async function removeAllergy(allergyName: string): Promise<void> {
+export async function removeAllergy(allergyName: string): Promise<string[]> {
   console.log('[profileService] removeAllergy 시작:', allergyName);
 
   if (!supabase) {
@@ -211,6 +212,7 @@ export async function removeAllergy(allergyName: string): Promise<void> {
 
   console.log('[profileService] 업데이트된 프로필:', updatedProfile);
   console.log('[profileService] removeAllergy 완료');
+  return updatedAllergies;
 }
 
 /**
@@ -240,7 +242,7 @@ export async function getUserDietaryPreferences(): Promise<string[]> {
 /**
  * 편식 추가
  */
-export async function addDietaryPreference(prefName: string): Promise<void> {
+export async function addDietaryPreference(prefName: string): Promise<string[]> {
   console.log('[profileService] addDietaryPreference 시작:', prefName);
 
   if (!supabase) {
@@ -297,12 +299,13 @@ export async function addDietaryPreference(prefName: string): Promise<void> {
 
   console.log('[profileService] 업데이트된 프로필:', updatedProfile);
   console.log('[profileService] addDietaryPreference 완료');
+  return updatedPrefs;
 }
 
 /**
  * 편식 삭제
  */
-export async function removeDietaryPreference(prefName: string): Promise<void> {
+export async function removeDietaryPreference(prefName: string): Promise<string[]> {
   console.log('[profileService] removeDietaryPreference 시작:', prefName);
 
   if (!supabase) {
@@ -348,4 +351,5 @@ export async function removeDietaryPreference(prefName: string): Promise<void> {
 
   console.log('[profileService] 업데이트된 프로필:', updatedProfile);
   console.log('[profileService] removeDietaryPreference 완료');
+  return updatedPrefs;
 }
