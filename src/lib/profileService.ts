@@ -80,13 +80,14 @@ export async function getUserAllergies(): Promise<string[]> {
     return [];
   }
 
-  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회)
-  const { data: profile } = await supabase
+  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - limit 사용)
+  const { data: profiles } = await supabase
     .from('profiles')
     .select('allergies')
     .eq('id', session.user.id)
-    .single();
+    .limit(1);
 
+  const profile = profiles?.[0];
   console.log('[getUserAllergies] 조회된 프로필:', profile);
   return profile?.allergies || [];
 }
@@ -228,13 +229,14 @@ export async function getUserDietaryPreferences(): Promise<string[]> {
     return [];
   }
 
-  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회)
-  const { data: profile } = await supabase
+  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - limit 사용)
+  const { data: profiles } = await supabase
     .from('profiles')
     .select('dietary_preferences')
     .eq('id', session.user.id)
-    .single();
+    .limit(1);
 
+  const profile = profiles?.[0];
   console.log('[getUserDietaryPreferences] 조회된 프로필:', profile);
   return profile?.dietary_preferences || [];
 }
