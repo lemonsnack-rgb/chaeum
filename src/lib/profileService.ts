@@ -92,19 +92,31 @@ export async function addAllergy(allergyName: string): Promise<void> {
     throw new Error('Allergy name cannot be empty');
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    console.error('[profileService] 세션 없음');
+    throw new Error('로그인이 필요합니다');
+  }
+  console.log('[profileService] 세션 확인됨:', session.user.id);
+
   // 프로필이 없으면 자동 생성
   console.log('[profileService] ensureUserProfile 호출');
   await ensureUserProfile();
   console.log('[profileService] ensureUserProfile 완료');
 
-  console.log('[profileService] getUserProfile 호출');
-  const profile = await getUserProfile();
-  console.log('[profileService] 프로필 조회 결과:', profile);
+  // DB에서 직접 최신 프로필 조회 (캐시 우회)
+  console.log('[profileService] DB에서 최신 프로필 조회');
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
 
-  if (!profile) {
-    console.error('[profileService] 프로필 조회 실패');
-    throw new Error('Failed to create or retrieve user profile');
+  if (fetchError || !profile) {
+    console.error('[profileService] 프로필 조회 실패:', fetchError);
+    throw new Error('Failed to retrieve user profile');
   }
+  console.log('[profileService] 프로필 조회 결과:', profile);
 
   const currentAllergies = profile.allergies || [];
   console.log('[profileService] 현재 알레르기:', currentAllergies);
@@ -116,13 +128,6 @@ export async function addAllergy(allergyName: string): Promise<void> {
 
   const updatedAllergies = [...currentAllergies, trimmed];
   console.log('[profileService] 업데이트할 알레르기:', updatedAllergies);
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    console.error('[profileService] 세션 없음');
-    throw new Error('로그인이 필요합니다');
-  }
-  console.log('[profileService] 세션 확인됨:', session.user.id);
 
   console.log('[profileService] profiles 테이블 업데이트 시도');
   const { data: updatedProfile, error } = await supabase
@@ -151,23 +156,30 @@ export async function removeAllergy(allergyName: string): Promise<void> {
     throw new Error('Supabase not configured');
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('로그인이 필요합니다');
+  }
+
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  const profile = await getUserProfile();
-  if (!profile) {
-    throw new Error('Failed to create or retrieve user profile');
+  // DB에서 직접 최신 프로필 조회
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  if (fetchError || !profile) {
+    console.error('[profileService] 프로필 조회 실패:', fetchError);
+    throw new Error('Failed to retrieve user profile');
   }
 
   const updatedAllergies = (profile.allergies || []).filter(
     (a) => a !== allergyName
   );
   console.log('[profileService] 삭제 후 알레르기:', updatedAllergies);
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    throw new Error('로그인이 필요합니다');
-  }
 
   const { data: updatedProfile, error } = await supabase
     .from('profiles')
@@ -208,26 +220,36 @@ export async function addDietaryPreference(prefName: string): Promise<void> {
     throw new Error('Dietary preference name cannot be empty');
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('로그인이 필요합니다');
+  }
+
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  const profile = await getUserProfile();
-  if (!profile) {
-    throw new Error('Failed to create or retrieve user profile');
+  // DB에서 직접 최신 프로필 조회
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  if (fetchError || !profile) {
+    console.error('[profileService] 프로필 조회 실패:', fetchError);
+    throw new Error('Failed to retrieve user profile');
   }
+  console.log('[profileService] 프로필 조회 결과:', profile);
 
   const currentPrefs = profile.dietary_preferences || [];
+  console.log('[profileService] 현재 편식:', currentPrefs);
+
   if (currentPrefs.includes(trimmed)) {
     throw new Error('이미 등록된 편식 정보입니다');
   }
 
   const updatedPrefs = [...currentPrefs, trimmed];
   console.log('[profileService] 업데이트할 편식:', updatedPrefs);
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    throw new Error('로그인이 필요합니다');
-  }
 
   const { data: updatedProfile, error } = await supabase
     .from('profiles')
@@ -255,23 +277,30 @@ export async function removeDietaryPreference(prefName: string): Promise<void> {
     throw new Error('Supabase not configured');
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('로그인이 필요합니다');
+  }
+
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  const profile = await getUserProfile();
-  if (!profile) {
-    throw new Error('Failed to create or retrieve user profile');
+  // DB에서 직접 최신 프로필 조회
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  if (fetchError || !profile) {
+    console.error('[profileService] 프로필 조회 실패:', fetchError);
+    throw new Error('Failed to retrieve user profile');
   }
 
   const updatedPrefs = (profile.dietary_preferences || []).filter(
     (p) => p !== prefName
   );
   console.log('[profileService] 삭제 후 편식:', updatedPrefs);
-
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    throw new Error('로그인이 필요합니다');
-  }
 
   const { data: updatedProfile, error } = await supabase
     .from('profiles')
