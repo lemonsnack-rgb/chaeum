@@ -1,8 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 임시: 환경변수가 로드되지 않아 하드코딩 (나중에 환경변수로 되돌려야 함)
-const supabaseUrl = 'https://ltcaxapujbhayubvaltd.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0Y2F4YXB1amJoYXl1YnZhbHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5Nzc3NzcsImV4cCI6MjA3OTU1Mzc3N30.su1arJ4JjC6MzapExatGwJFiBlAEN6rmnkhMPJsXwKg';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+// 환경 변수 디버깅 (개발 환경에서만)
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Supabase 환경 변수가 설정되지 않았습니다!');
+  console.error('VITE_SUPABASE_URL:', supabaseUrl ? '✅ 설정됨' : '❌ 없음');
+  console.error('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ 설정됨' : '❌ 없음');
+  console.error('');
+  console.error('해결 방법:');
+  console.error('1. .env 파일이 프로젝트 루트에 있는지 확인');
+  console.error('2. .env 파일에 VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY가 있는지 확인');
+  console.error('3. 개발 서버를 재시작 (npm run dev)');
+  throw new Error('Supabase 환경 변수가 설정되지 않았습니다. .env 파일을 확인해주세요.');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
