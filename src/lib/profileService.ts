@@ -88,21 +88,24 @@ export async function addAllergy(allergyName: string): Promise<void> {
     throw new Error('Allergy name cannot be empty');
   }
 
+  // 프로필이 없으면 자동 생성
+  await ensureUserProfile();
+
   const profile = await getUserProfile();
   if (!profile) {
-    throw new Error('User profile not found');
+    throw new Error('Failed to create or retrieve user profile');
   }
 
   const currentAllergies = profile.allergies || [];
   if (currentAllergies.includes(trimmed)) {
-    throw new Error('This allergy is already registered');
+    throw new Error('이미 등록된 알레르기입니다');
   }
 
   const updatedAllergies = [...currentAllergies, trimmed];
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    throw new Error('User not authenticated');
+    throw new Error('로그인이 필요합니다');
   }
 
   const { error } = await supabase
@@ -112,7 +115,7 @@ export async function addAllergy(allergyName: string): Promise<void> {
 
   if (error) {
     console.error('Error adding allergy:', error);
-    throw error;
+    throw new Error('알레르기 정보 추가 중 오류가 발생했습니다');
   }
 }
 
@@ -124,9 +127,12 @@ export async function removeAllergy(allergyName: string): Promise<void> {
     throw new Error('Supabase not configured');
   }
 
+  // 프로필이 없으면 자동 생성
+  await ensureUserProfile();
+
   const profile = await getUserProfile();
   if (!profile) {
-    throw new Error('User profile not found');
+    throw new Error('Failed to create or retrieve user profile');
   }
 
   const updatedAllergies = (profile.allergies || []).filter(
@@ -135,7 +141,7 @@ export async function removeAllergy(allergyName: string): Promise<void> {
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    throw new Error('User not authenticated');
+    throw new Error('로그인이 필요합니다');
   }
 
   const { error } = await supabase
@@ -145,7 +151,7 @@ export async function removeAllergy(allergyName: string): Promise<void> {
 
   if (error) {
     console.error('Error removing allergy:', error);
-    throw error;
+    throw new Error('알레르기 정보 삭제 중 오류가 발생했습니다');
   }
 }
 
@@ -170,21 +176,24 @@ export async function addDietaryPreference(prefName: string): Promise<void> {
     throw new Error('Dietary preference name cannot be empty');
   }
 
+  // 프로필이 없으면 자동 생성
+  await ensureUserProfile();
+
   const profile = await getUserProfile();
   if (!profile) {
-    throw new Error('User profile not found');
+    throw new Error('Failed to create or retrieve user profile');
   }
 
   const currentPrefs = profile.dietary_preferences || [];
   if (currentPrefs.includes(trimmed)) {
-    throw new Error('This dietary preference is already registered');
+    throw new Error('이미 등록된 편식 정보입니다');
   }
 
   const updatedPrefs = [...currentPrefs, trimmed];
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    throw new Error('User not authenticated');
+    throw new Error('로그인이 필요합니다');
   }
 
   const { error } = await supabase
@@ -194,7 +203,7 @@ export async function addDietaryPreference(prefName: string): Promise<void> {
 
   if (error) {
     console.error('Error adding dietary preference:', error);
-    throw error;
+    throw new Error('편식 정보 추가 중 오류가 발생했습니다');
   }
 }
 
@@ -206,9 +215,12 @@ export async function removeDietaryPreference(prefName: string): Promise<void> {
     throw new Error('Supabase not configured');
   }
 
+  // 프로필이 없으면 자동 생성
+  await ensureUserProfile();
+
   const profile = await getUserProfile();
   if (!profile) {
-    throw new Error('User profile not found');
+    throw new Error('Failed to create or retrieve user profile');
   }
 
   const updatedPrefs = (profile.dietary_preferences || []).filter(
@@ -217,7 +229,7 @@ export async function removeDietaryPreference(prefName: string): Promise<void> {
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    throw new Error('User not authenticated');
+    throw new Error('로그인이 필요합니다');
   }
 
   const { error } = await supabase
@@ -227,6 +239,6 @@ export async function removeDietaryPreference(prefName: string): Promise<void> {
 
   if (error) {
     console.error('Error removing dietary preference:', error);
-    throw error;
+    throw new Error('편식 정보 삭제 중 오류가 발생했습니다');
   }
 }
