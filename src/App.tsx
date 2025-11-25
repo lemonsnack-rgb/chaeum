@@ -228,7 +228,9 @@ function App() {
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ChefHat className="w-7 h-7 text-primary" />
-            <h1 className="text-xl font-bold text-gray-900">냉장고지킴이</h1>
+            <h1 className="text-xl font-bold text-gray-900">
+              <span className="text-primary">오</span>늘의<span className="text-primary">냉</span>장고
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="px-3 py-1 bg-orange-100 rounded-full">
