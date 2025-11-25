@@ -169,18 +169,26 @@ export async function generateBatchRecipes(
   const dietaryPreferences: string[] = [];
 
   if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('allergies, dietary_preferences')
-        .eq('id', session.user.id)
-        .maybeSingle();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('allergies, dietary_preferences')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-      if (profile) {
-        allergies.push(...(profile.allergies || []));
-        dietaryPreferences.push(...(profile.dietary_preferences || []));
+        if (profileError) {
+          console.warn('Profile fetch error (continuing without user preferences):', profileError);
+          // profiles 테이블이 없거나 오류가 발생해도 레시피 생성은 계속 진행
+        } else if (profile) {
+          allergies.push(...(profile.allergies || []));
+          dietaryPreferences.push(...(profile.dietary_preferences || []));
+        }
       }
+    } catch (error) {
+      console.error('Unexpected error fetching user profile (continuing):', error);
+      // 오류 발생해도 레시피 생성은 계속 진행
     }
   }
 
@@ -370,18 +378,24 @@ export async function generateRecipeWithCaching(
   const dietaryPreferences: string[] = [];
 
   if (supabase) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('allergies, dietary_preferences')
-        .eq('id', session.user.id)
-        .maybeSingle();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('allergies, dietary_preferences')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-      if (profile) {
-        allergies.push(...(profile.allergies || []));
-        dietaryPreferences.push(...(profile.dietary_preferences || []));
+        if (profileError) {
+          console.warn('Profile fetch error (continuing without user preferences):', profileError);
+        } else if (profile) {
+          allergies.push(...(profile.allergies || []));
+          dietaryPreferences.push(...(profile.dietary_preferences || []));
+        }
       }
+    } catch (error) {
+      console.error('Unexpected error fetching user profile (continuing):', error);
     }
   }
 

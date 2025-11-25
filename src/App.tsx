@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut } from 'lucide-react';
+import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
 import { CameraButton } from './components/CameraButton';
 import { IngredientInput } from './components/IngredientInput';
@@ -10,9 +10,19 @@ import { RecipeSearch } from './components/RecipeSearch';
 import { AuthModal } from './components/AuthModal';
 import { RecipeOptionsModal } from './components/RecipeOptionsModal';
 import { LoadingModal } from './components/LoadingModal';
+import { AllergyManager } from './components/AllergyManager';
 import { generateBatchRecipes, getUserRecipes, deleteRecipe, searchRecipes, searchPublicRecipes, saveUserRecipe, Recipe } from './lib/recipeService';
 import { signOut, getCurrentUser, getUserProfile, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
+import {
+  getUserAllergies,
+  addAllergy,
+  removeAllergy,
+  getUserDietaryPreferences,
+  addDietaryPreference,
+  removeDietaryPreference,
+  ensureUserProfile
+} from './lib/profileService';
 
 type Tab = 'fridge' | 'recipe' | 'profile';
 type RecipeSubTab = 'search' | 'recommended' | 'saved';
@@ -30,6 +40,8 @@ function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showRecipeOptions, setShowRecipeOptions] = useState(false);
+  const [allergies, setAllergies] = useState<string[]>([]);
+  const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
   const {
     ingredients,
     loading,
@@ -110,6 +122,22 @@ function App() {
     const user = await getCurrentUser();
     setIsAuthenticated(!!user);
     setUserEmail(user?.email || null);
+
+    if (user) {
+      await loadUserProfile();
+    }
+  }
+
+  async function loadUserProfile() {
+    try {
+      await ensureUserProfile();
+      const userAllergies = await getUserAllergies();
+      const userPrefs = await getUserDietaryPreferences();
+      setAllergies(userAllergies);
+      setDietaryPreferences(userPrefs);
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    }
   }
 
   async function loadRecipes() {
@@ -149,10 +177,32 @@ function App() {
       await signOut();
       setIsAuthenticated(false);
       setUserEmail(null);
+      setAllergies([]);
+      setDietaryPreferences([]);
       setActiveTab('fridge');
     } catch (error) {
       console.error('Sign out failed:', error);
     }
+  }
+
+  async function handleAddAllergy(allergyName: string) {
+    await addAllergy(allergyName);
+    await loadUserProfile();
+  }
+
+  async function handleRemoveAllergy(allergyName: string) {
+    await removeAllergy(allergyName);
+    await loadUserProfile();
+  }
+
+  async function handleAddDietaryPreference(prefName: string) {
+    await addDietaryPreference(prefName);
+    await loadUserProfile();
+  }
+
+  async function handleRemoveDietaryPreference(prefName: string) {
+    await removeDietaryPreference(prefName);
+    await loadUserProfile();
   }
 
   async function handleSaveUserRecipe(recipe: Recipe) {
@@ -485,28 +535,47 @@ function App() {
         )}
 
         {activeTab === 'profile' && (
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
             {isAuthenticated ? (
-              <div className="py-8">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-10 h-10 text-primary" />
+              <div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <User className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 text-center mb-2">내 정보</h3>
-                <p className="text-sm text-gray-600 text-center mb-6">
+                <h3 className="text-lg font-bold text-gray-900 text-center mb-1">내 정보</h3>
+                <p className="text-xs text-gray-600 text-center mb-6">
                   {userEmail}
                 </p>
 
-                <div className="space-y-3">
+                <div className="space-y-6">
+                  {/* 저장된 재료 정보 */}
                   <div className="bg-orange-50 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-gray-700">저장된 재료</span>
                       <span className="text-lg font-bold text-primary">{ingredients.length}개</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-700">생성된 레시피</span>
-                      <span className="text-lg font-bold text-primary">{recipes.length}개</span>
-                    </div>
                   </div>
+
+                  {/* 알레르기 정보 */}
+                  <AllergyManager
+                    items={allergies}
+                    onAdd={handleAddAllergy}
+                    onRemove={handleRemoveAllergy}
+                    title="알레르기 정보"
+                    placeholder="예: 땅콩, 우유, 계란"
+                    commonItems={['땅콩', '갑각류', '우유', '계란', '밀가루', '대두', '생선', '견과류']}
+                    icon={<AlertCircle className="w-4 h-4 text-red-500" />}
+                  />
+
+                  {/* 편식 정보 */}
+                  <AllergyManager
+                    items={dietaryPreferences}
+                    onAdd={handleAddDietaryPreference}
+                    onRemove={handleRemoveDietaryPreference}
+                    title="편식 정보"
+                    placeholder="예: 파, 고수, 셀러리"
+                    commonItems={['파', '고수', '셀러리', '피망', '가지', '버섯']}
+                    icon={<Utensils className="w-4 h-4 text-amber-500" />}
+                  />
 
                   <button
                     onClick={handleSignOut}
