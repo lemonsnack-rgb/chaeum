@@ -121,14 +121,15 @@ export async function addAllergy(allergyName: string): Promise<string[]> {
   await ensureUserProfile();
   console.log('[profileService] ensureUserProfile 완료');
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회)
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
   console.log('[profileService] DB에서 최신 프로필 조회');
-  const { data: profile, error: fetchError } = await supabase
+  const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
-    .single();
+    .limit(1);
 
+  const profile = profiles?.[0];
   if (fetchError || !profile) {
     console.error('[profileService] 프로필 조회 실패:', fetchError);
     throw new Error('Failed to retrieve user profile');
@@ -182,13 +183,14 @@ export async function removeAllergy(allergyName: string): Promise<string[]> {
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회
-  const { data: profile, error: fetchError } = await supabase
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
-    .single();
+    .limit(1);
 
+  const profile = profiles?.[0];
   if (fetchError || !profile) {
     console.error('[profileService] 프로필 조회 실패:', fetchError);
     throw new Error('Failed to retrieve user profile');
@@ -264,13 +266,14 @@ export async function addDietaryPreference(prefName: string): Promise<string[]> 
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회
-  const { data: profile, error: fetchError } = await supabase
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
-    .single();
+    .limit(1);
 
+  const profile = profiles?.[0];
   if (fetchError || !profile) {
     console.error('[profileService] 프로필 조회 실패:', fetchError);
     throw new Error('Failed to retrieve user profile');
@@ -322,13 +325,14 @@ export async function removeDietaryPreference(prefName: string): Promise<string[
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회
-  const { data: profile, error: fetchError } = await supabase
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
-    .single();
+    .limit(1);
 
+  const profile = profiles?.[0];
   if (fetchError || !profile) {
     console.error('[profileService] 프로필 조회 실패:', fetchError);
     throw new Error('Failed to retrieve user profile');
