@@ -80,11 +80,12 @@ export async function getUserAllergies(): Promise<string[]> {
     return [];
   }
 
-  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - limit 사용)
+  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - order by + limit 사용)
   const { data: profiles } = await supabase
     .from('profiles')
     .select('allergies')
     .eq('id', session.user.id)
+    .order('updated_at', { ascending: false })
     .limit(1);
 
   const profile = profiles?.[0];
@@ -121,12 +122,13 @@ export async function addAllergy(allergyName: string): Promise<string[]> {
   await ensureUserProfile();
   console.log('[profileService] ensureUserProfile 완료');
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - order by updated_at 사용)
   console.log('[profileService] DB에서 최신 프로필 조회');
   const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
+    .order('updated_at', { ascending: false })
     .limit(1);
 
   const profile = profiles?.[0];
@@ -183,11 +185,12 @@ export async function removeAllergy(allergyName: string): Promise<string[]> {
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - order by + limit 사용)
   const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
+    .order('updated_at', { ascending: false })
     .limit(1);
 
   const profile = profiles?.[0];
@@ -231,11 +234,12 @@ export async function getUserDietaryPreferences(): Promise<string[]> {
     return [];
   }
 
-  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - limit 사용)
+  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - order by + limit 사용)
   const { data: profiles } = await supabase
     .from('profiles')
     .select('dietary_preferences')
     .eq('id', session.user.id)
+    .order('updated_at', { ascending: false })
     .limit(1);
 
   const profile = profiles?.[0];
@@ -266,11 +270,12 @@ export async function addDietaryPreference(prefName: string): Promise<string[]> 
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - order by + limit 사용)
   const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
+    .order('updated_at', { ascending: false })
     .limit(1);
 
   const profile = profiles?.[0];
@@ -325,11 +330,12 @@ export async function removeDietaryPreference(prefName: string): Promise<string[
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - limit 사용)
+  // DB에서 직접 최신 프로필 조회 (캐시 우회 - order by + limit 사용)
   const { data: profiles, error: fetchError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
+    .order('updated_at', { ascending: false })
     .limit(1);
 
   const profile = profiles?.[0];
