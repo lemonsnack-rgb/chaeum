@@ -552,9 +552,14 @@ function App() {
                   {userEmail}
                 </p>
                 {userNickname && (
-                  <p className="text-sm text-primary font-semibold text-center mb-6">
-                    닉네임: {userNickname}님 환영합니다!
-                  </p>
+                  <div className="text-sm text-center mb-6">
+                    <p className="text-gray-700 font-medium">
+                      닉네임: <span className="text-primary font-semibold">{userNickname}님</span>
+                    </p>
+                    <p className="text-gray-700 font-medium">
+                      환영합니다.
+                    </p>
+                  </div>
                 )}
 
                 <div className="space-y-6">
