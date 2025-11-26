@@ -58,7 +58,7 @@ export async function ensureUserProfile(): Promise<void> {
       dietary_preferences: [],
     }, {
       onConflict: 'id',
-      ignoreDuplicates: false,
+      ignoreDuplicates: true,  // 기존 프로필이 있으면 덮어쓰지 않음
     });
 
   if (error) {
