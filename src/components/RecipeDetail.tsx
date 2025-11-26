@@ -64,6 +64,12 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
       return;
     }
 
+    // 이미 저장된 레시피인 경우
+    if (isBookmarked) {
+      alert('이미 저장된 레시피입니다.');
+      return;
+    }
+
     if (!onQuickSave) return;
 
     try {
@@ -132,20 +138,28 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
               <button
                 onClick={handleQuickSave}
                 disabled={isSaving}
-                className="flex items-center gap-1 px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors disabled:opacity-50"
+                className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors disabled:opacity-50 ${
+                  isBookmarked
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-white text-red-500 border-2 border-red-500 hover:bg-red-50'
+                }`}
               >
-                <Heart className="w-4 h-4" />
-                <span className="text-sm font-semibold">내 레시피로 저장</span>
+                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                <span className="text-sm font-semibold">{isBookmarked ? '저장됨' : '내 레시피로 저장'}</span>
               </button>
             )}
             {!isReadOnly && onQuickSave && !isEditing && (
               <button
                 onClick={handleQuickSave}
                 disabled={isSaving}
-                className="flex items-center gap-1 px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50"
+                className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors disabled:opacity-50 ${
+                  isBookmarked
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-white text-red-500 border-2 border-red-500 hover:bg-red-50'
+                }`}
               >
-                <Heart className="w-4 h-4" />
-                <span className="text-sm font-semibold">저장</span>
+                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                <span className="text-sm font-semibold">{isBookmarked ? '저장됨' : '저장'}</span>
               </button>
             )}
             {!isReadOnly && onSaveUserRecipe && (

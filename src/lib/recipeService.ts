@@ -575,6 +575,18 @@ export async function saveUserRecipe(recipe: Recipe): Promise<void> {
     throw new Error('User must be logged in');
   }
 
+  // 중복 저장 확인
+  const { data: existingRecipe } = await supabase
+    .from('user_recipes')
+    .select('id')
+    .eq('user_id', session.user.id)
+    .eq('original_recipe_id', recipe.id)
+    .maybeSingle();
+
+  if (existingRecipe) {
+    throw new Error('이미 저장된 레시피입니다.');
+  }
+
   const contentToCheck = `
     Title: ${recipe.title}
     Instructions: ${recipe.instructions.join(' ')}

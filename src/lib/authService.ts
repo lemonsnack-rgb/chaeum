@@ -154,15 +154,27 @@ export async function isRecipeBookmarked(recipeId: string): Promise<boolean> {
     return false;
   }
 
-  // Check in user_recipes table
+  // Check in user_recipes table using original_recipe_id
   const { data: userRecipe, error: userRecipeError } = await supabase
+    .from('user_recipes')
+    .select('id')
+    .eq('original_recipe_id', recipeId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  if (!userRecipeError && userRecipe) {
+    return true;
+  }
+
+  // Also check if the recipe itself is from user_recipes (already saved)
+  const { data: savedRecipe, error: savedRecipeError } = await supabase
     .from('user_recipes')
     .select('id')
     .eq('id', recipeId)
     .eq('user_id', session.user.id)
     .maybeSingle();
 
-  if (!userRecipeError && userRecipe) {
+  if (!savedRecipeError && savedRecipe) {
     return true;
   }
 

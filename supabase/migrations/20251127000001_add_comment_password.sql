@@ -161,7 +161,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Update get_recipe_comments to include is_guest field
+-- Drop and recreate get_recipe_comments to include is_guest field
+DROP FUNCTION IF EXISTS public.get_recipe_comments(UUID);
+
 CREATE OR REPLACE FUNCTION public.get_recipe_comments(p_recipe_id UUID)
 RETURNS TABLE (
   id UUID,
