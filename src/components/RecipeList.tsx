@@ -1,14 +1,12 @@
-import { Clock, Users, ChefHat, Trash2 } from 'lucide-react';
+import { Clock, Users, ChefHat } from 'lucide-react';
 import { Recipe } from '../lib/recipeService';
 
 interface RecipeListProps {
   recipes: Recipe[];
   onSelectRecipe: (recipe: Recipe) => void;
-  onDeleteRecipe: (recipeId: string) => void;
-  hideDelete?: boolean;
 }
 
-export function RecipeList({ recipes, onSelectRecipe, onDeleteRecipe, hideDelete = false }: RecipeListProps) {
+export function RecipeList({ recipes, onSelectRecipe }: RecipeListProps) {
   if (recipes.length === 0) {
     return (
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
@@ -88,23 +86,6 @@ export function RecipeList({ recipes, onSelectRecipe, onDeleteRecipe, hideDelete
               </div>
             </div>
           </div>
-
-          {!hideDelete && (
-            <div className="px-4 pb-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm('이 레시피를 삭제하시겠습니까?')) {
-                    onDeleteRecipe(recipe.id);
-                  }
-                }}
-                className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-              >
-                <Trash2 className="w-4 h-4" />
-                삭제
-              </button>
-            </div>
-          )}
         </div>
       ))}
     </div>

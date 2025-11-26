@@ -622,6 +622,28 @@ export async function saveUserRecipe(recipe: Recipe): Promise<void> {
   }
 }
 
+export async function unsaveUserRecipe(recipeId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase not configured');
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('User must be logged in');
+  }
+
+  // original_recipe_id로 저장된 레시피 삭제
+  const { error } = await supabase
+    .from('user_recipes')
+    .delete()
+    .eq('user_id', session.user.id)
+    .eq('original_recipe_id', recipeId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]> {
   if (!supabase) {
     return [];

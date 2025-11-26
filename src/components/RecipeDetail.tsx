@@ -11,12 +11,13 @@ interface RecipeDetailProps {
   userIngredients?: string[];
   onSaveUserRecipe?: (recipe: Recipe) => Promise<void>;
   onQuickSave?: (recipe: Recipe) => Promise<void>;
+  onUnsave?: (recipeId: string) => Promise<void>;
   isReadOnly?: boolean;
   isAuthenticated?: boolean;
   onShowAuthModal?: () => void;
 }
 
-export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserRecipe, onQuickSave, isReadOnly = false, isAuthenticated = false, onShowAuthModal }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal }: RecipeDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecipe, setEditedRecipe] = useState(recipe);
   const [safetyConsent, setSafetyConsent] = useState(false);
@@ -64,21 +65,26 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
       return;
     }
 
-    // 이미 저장된 레시피인 경우
-    if (isBookmarked) {
-      alert('이미 저장된 레시피입니다.');
-      return;
-    }
-
-    if (!onQuickSave) return;
-
     try {
       setIsSaving(true);
-      await onQuickSave(recipe);
-      setIsBookmarked(true);
-      alert('레시피가 내 레시피에 저장되었습니다!');
+
+      // 이미 저장된 레시피인 경우 저장 취소
+      if (isBookmarked) {
+        if (onUnsave && window.confirm('저장을 취소하시겠습니까?')) {
+          await onUnsave(recipe.id);
+          setIsBookmarked(false);
+          alert('저장이 취소되었습니다.');
+        }
+      } else {
+        // 저장되지 않은 레시피인 경우 저장
+        if (onQuickSave) {
+          await onQuickSave(recipe);
+          setIsBookmarked(true);
+          alert('레시피가 내 레시피에 저장되었습니다!');
+        }
+      }
     } catch (error: any) {
-      alert(error.message || '저장 중 오류가 발생했습니다.');
+      alert(error.message || '처리 중 오류가 발생했습니다.');
     } finally {
       setIsSaving(false);
     }

@@ -125,8 +125,6 @@ export function RecipeSearchWithInfiniteScroll({
           <RecipeList
             recipes={recipes}
             onSelectRecipe={onRecipeClick}
-            onDeleteRecipe={() => {}}
-            hideDelete={true}
           />
 
           {/* 무한 스크롤 트리거 & 로딩 인디케이터 */}

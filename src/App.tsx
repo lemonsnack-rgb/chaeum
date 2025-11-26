@@ -11,7 +11,7 @@ import { AuthModal } from './components/AuthModal';
 import { RecipeOptionsModal } from './components/RecipeOptionsModal';
 import { LoadingModal } from './components/LoadingModal';
 import { AllergyManager } from './components/AllergyManager';
-import { generateBatchRecipes, deleteRecipe, saveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
+import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
 import { signOut, getCurrentUser, getUserProfile, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
 import { getRecentRecipeView } from './lib/recipeViewService';
@@ -153,6 +153,15 @@ function App() {
     await saveUserRecipe(recipe);
   }
 
+  async function handleUnsaveRecipe(recipeId: string) {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      throw new Error('로그인이 필요합니다.');
+    }
+    await unsaveUserRecipe(recipeId);
+    await loadSavedRecipes();
+  }
+
   async function handleSignOut() {
     try {
       await signOut();
@@ -252,23 +261,6 @@ function App() {
     }
   }
 
-  async function handleDeleteRecipe(recipeId: string) {
-    if (!confirm('\uc774 \ub808\uc2dc\ud53c\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) {
-      return;
-    }
-
-    try {
-      await deleteRecipe(recipeId);
-      await loadSavedRecipes();
-      if (selectedRecipe?.id === recipeId) {
-        setSelectedRecipe(null);
-      }
-    } catch (error) {
-      console.error('Failed to delete recipe:', error);
-      alert('\ub808\uc2dc\ud53c \uc0ad\uc81c \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4.');
-    }
-  }
-
   async function handleViewRecentRecipe() {
     try {
       const recentRecipeId = await getRecentRecipeView();
@@ -300,6 +292,7 @@ function App() {
         userIngredients={ingredients.map(i => i.name)}
         onSaveUserRecipe={handleSaveUserRecipe}
         onQuickSave={handleQuickSave}
+        onUnsave={handleUnsaveRecipe}
         isReadOnly={isFromRecommendations}
         isAuthenticated={isAuthenticated}
         onShowAuthModal={() => setShowAuthModal(true)}
@@ -457,8 +450,6 @@ function App() {
                     <RecipeList
                       recipes={recommendedRecipes}
                       onSelectRecipe={setSelectedRecipe}
-                      onDeleteRecipe={handleDeleteRecipe}
-                      hideDelete={true}
                     />
                     <div className="mt-6">
                       <button
@@ -526,7 +517,6 @@ function App() {
                   <RecipeList
                     recipes={savedRecipes}
                     onSelectRecipe={setSelectedRecipe}
-                    onDeleteRecipe={handleDeleteRecipe}
                   />
                 ) : (
                   <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 text-center">
