@@ -9,6 +9,7 @@ export interface Comment {
   created_at: string;
   updated_at: string;
   is_author?: boolean;
+  is_guest?: boolean;
 }
 
 /**
@@ -32,9 +33,14 @@ export async function getRecipeComments(recipeId: string): Promise<Comment[]> {
 }
 
 /**
- * 댓글 추가 (닉네임 자동 포함)
+ * 댓글 추가 (회원 또는 비회원)
  */
-export async function addComment(recipeId: string, content: string): Promise<Comment | null> {
+export async function addComment(
+  recipeId: string,
+  content: string,
+  nickname?: string,
+  password?: string
+): Promise<Comment | null> {
   if (!supabase) {
     throw new Error('Supabase not configured');
   }
@@ -45,10 +51,32 @@ export async function addComment(recipeId: string, content: string): Promise<Com
   }
 
   const { data: { session } } = await supabase.auth.getSession();
+
+  // 비회원인 경우
   if (!session) {
-    throw new Error('로그인이 필요합니다');
+    if (!nickname || !nickname.trim()) {
+      throw new Error('닉네임을 입력해주세요');
+    }
+    if (!password || !password.trim()) {
+      throw new Error('비밀번호를 입력해주세요');
+    }
+
+    const { data, error } = await supabase.rpc('add_comment', {
+      p_recipe_id: recipeId,
+      p_content: trimmed,
+      p_nickname: nickname.trim(),
+      p_password: password
+    });
+
+    if (error) {
+      console.error('[addComment] RPC 에러:', error);
+      throw new Error(error.message || '댓글 추가 중 오류가 발생했습니다');
+    }
+
+    return data?.[0] || null;
   }
 
+  // 회원인 경우
   const { data, error } = await supabase.rpc('add_comment', {
     p_recipe_id: recipeId,
     p_content: trimmed
@@ -63,9 +91,13 @@ export async function addComment(recipeId: string, content: string): Promise<Com
 }
 
 /**
- * 댓글 수정
+ * 댓글 수정 (회원 또는 비회원)
  */
-export async function updateComment(commentId: string, content: string): Promise<void> {
+export async function updateComment(
+  commentId: string,
+  content: string,
+  password?: string
+): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase not configured');
   }
@@ -75,32 +107,33 @@ export async function updateComment(commentId: string, content: string): Promise
     throw new Error('댓글 내용을 입력해주세요');
   }
 
-  const { error } = await supabase
-    .from('comments')
-    .update({ content: trimmed })
-    .eq('id', commentId);
+  const { data, error } = await supabase.rpc('update_comment', {
+    p_comment_id: commentId,
+    p_content: trimmed,
+    p_password: password || null
+  });
 
   if (error) {
-    console.error('[updateComment] 에러:', error);
-    throw new Error('댓글 수정 중 오류가 발생했습니다');
+    console.error('[updateComment] RPC 에러:', error);
+    throw new Error(error.message || '댓글 수정 중 오류가 발생했습니다');
   }
 }
 
 /**
- * 댓글 삭제
+ * 댓글 삭제 (회원 또는 비회원)
  */
-export async function deleteComment(commentId: string): Promise<void> {
+export async function deleteComment(commentId: string, password?: string): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase not configured');
   }
 
-  const { error } = await supabase
-    .from('comments')
-    .delete()
-    .eq('id', commentId);
+  const { data, error } = await supabase.rpc('delete_comment', {
+    p_comment_id: commentId,
+    p_password: password || null
+  });
 
   if (error) {
-    console.error('[deleteComment] 에러:', error);
-    throw new Error('댓글 삭제 중 오류가 발생했습니다');
+    console.error('[deleteComment] RPC 에러:', error);
+    throw new Error(error.message || '댓글 삭제 중 오류가 발생했습니다');
   }
 }

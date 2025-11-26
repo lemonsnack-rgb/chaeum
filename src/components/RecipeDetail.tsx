@@ -2,6 +2,7 @@ import { Clock, Users, ChefHat, ArrowLeft, AlertCircle, ExternalLink, Edit, Save
 import { Recipe } from '../lib/recipeService';
 import { useState, useEffect } from 'react';
 import { trackRecipeView } from '../lib/recipeViewService';
+import { isRecipeBookmarked } from '../lib/authService';
 import { CommentSection } from './CommentSection';
 
 interface RecipeDetailProps {
@@ -21,6 +22,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
   const [safetyConsent, setSafetyConsent] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   // 레시피 조회 기록 추적
   useEffect(() => {
@@ -28,6 +30,19 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
       trackRecipeView(recipe.id);
     }
   }, [recipe.id]);
+
+  // 북마크 상태 확인
+  useEffect(() => {
+    async function checkBookmarkStatus() {
+      if (recipe.id && isAuthenticated) {
+        const bookmarked = await isRecipeBookmarked(recipe.id);
+        setIsBookmarked(bookmarked);
+      } else {
+        setIsBookmarked(false);
+      }
+    }
+    checkBookmarkStatus();
+  }, [recipe.id, isAuthenticated]);
 
   const totalNutrition = recipe.nutrition.calories || 0;
   const proteinPercent = totalNutrition > 0 ? (recipe.nutrition.protein * 4 / totalNutrition * 100) : 0;
@@ -54,6 +69,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
     try {
       setIsSaving(true);
       await onQuickSave(recipe);
+      setIsBookmarked(true);
       alert('레시피가 내 레시피에 저장되었습니다!');
     } catch (error: any) {
       alert(error.message || '저장 중 오류가 발생했습니다.');

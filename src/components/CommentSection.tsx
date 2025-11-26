@@ -11,8 +11,11 @@ interface CommentSectionProps {
 export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [guestNickname, setGuestNickname] = useState('');
+  const [guestPassword, setGuestPassword] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [editPassword, setEditPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,18 +38,31 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!isAuthenticated) {
-      onLoginRequired();
-      return;
-    }
-
     if (!newComment.trim()) {
       return;
     }
 
     setSubmitting(true);
     try {
-      await addComment(recipeId, newComment);
+      if (isAuthenticated) {
+        // 회원인 경우
+        await addComment(recipeId, newComment);
+      } else {
+        // 비회원인 경우
+        if (!guestNickname.trim()) {
+          alert('닉네임을 입력해주세요');
+          setSubmitting(false);
+          return;
+        }
+        if (!guestPassword.trim()) {
+          alert('비밀번호를 입력해주세요');
+          setSubmitting(false);
+          return;
+        }
+        await addComment(recipeId, newComment, guestNickname, guestPassword);
+        setGuestNickname('');
+        setGuestPassword('');
+      }
       setNewComment('');
       await loadComments();
     } catch (error: any) {
@@ -56,28 +72,45 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
     }
   }
 
-  async function handleEdit(commentId: string) {
+  async function handleEdit(commentId: string, isGuest: boolean) {
     if (!editContent.trim()) {
       return;
     }
 
     try {
-      await updateComment(commentId, editContent);
+      if (isGuest) {
+        if (!editPassword.trim()) {
+          alert('비밀번호를 입력해주세요');
+          return;
+        }
+        await updateComment(commentId, editContent, editPassword);
+      } else {
+        await updateComment(commentId, editContent);
+      }
       setEditingId(null);
       setEditContent('');
+      setEditPassword('');
       await loadComments();
     } catch (error: any) {
       alert(error.message || '댓글 수정 중 오류가 발생했습니다');
     }
   }
 
-  async function handleDelete(commentId: string) {
+  async function handleDelete(commentId: string, isGuest: boolean) {
     if (!confirm('정말 삭제하시겠습니까?')) {
       return;
     }
 
     try {
-      await deleteComment(commentId);
+      if (isGuest) {
+        const password = prompt('비밀번호를 입력해주세요:');
+        if (!password) {
+          return;
+        }
+        await deleteComment(commentId, password);
+      } else {
+        await deleteComment(commentId);
+      }
       await loadComments();
     } catch (error: any) {
       alert(error.message || '댓글 삭제 중 오류가 발생했습니다');
@@ -102,19 +135,39 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
       </div>
 
       {/* 댓글 작성 폼 */}
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form onSubmit={handleSubmit} className="mb-6 space-y-3">
+        {!isAuthenticated && (
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              value={guestNickname}
+              onChange={(e) => setGuestNickname(e.target.value)}
+              placeholder="닉네임"
+              disabled={submitting}
+              className="px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none disabled:bg-gray-100"
+            />
+            <input
+              type="password"
+              value={guestPassword}
+              onChange={(e) => setGuestPassword(e.target.value)}
+              placeholder="비밀번호"
+              disabled={submitting}
+              className="px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none disabled:bg-gray-100"
+            />
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder={isAuthenticated ? '댓글을 입력하세요' : '로그인 후 댓글을 작성할 수 있습니다'}
-            disabled={!isAuthenticated || submitting}
-            className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            placeholder="댓글을 입력하세요"
+            disabled={submitting}
+            className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none disabled:bg-gray-100"
           />
           <button
             type="submit"
-            disabled={!isAuthenticated || !newComment.trim() || submitting}
+            disabled={!newComment.trim() || submitting}
             className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5" />
@@ -140,9 +193,18 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
                     autoFocus
                   />
+                  {comment.is_guest && (
+                    <input
+                      type="password"
+                      value={editPassword}
+                      onChange={(e) => setEditPassword(e.target.value)}
+                      placeholder="비밀번호"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  )}
                   <div className="flex gap-2 justify-end">
                     <button
-                      onClick={() => handleEdit(comment.id)}
+                      onClick={() => handleEdit(comment.id, comment.is_guest || false)}
                       className="px-3 py-1.5 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
                     >
                       저장
@@ -170,7 +232,7 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
                         })}
                       </span>
                     </div>
-                    {comment.is_author && (
+                    {(comment.is_author || comment.is_guest) && (
                       <div className="flex gap-1">
                         <button
                           onClick={() => startEdit(comment)}
@@ -180,7 +242,7 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(comment.id)}
+                          onClick={() => handleDelete(comment.id, comment.is_guest || false)}
                           className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="삭제"
                         >

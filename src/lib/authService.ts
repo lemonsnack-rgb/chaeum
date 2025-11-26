@@ -143,3 +143,36 @@ export async function getMyBookmarkedRecipes() {
     created_at: dbRecipe.created_at,
   }));
 }
+
+export async function isRecipeBookmarked(recipeId: string): Promise<boolean> {
+  if (!supabase) {
+    return false;
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return false;
+  }
+
+  // Check in user_recipes table
+  const { data: userRecipe, error: userRecipeError } = await supabase
+    .from('user_recipes')
+    .select('id')
+    .eq('id', recipeId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  if (!userRecipeError && userRecipe) {
+    return true;
+  }
+
+  // Check in bookmarks table
+  const { data: bookmark, error: bookmarkError } = await supabase
+    .from('bookmarks')
+    .select('id')
+    .eq('recipe_id', recipeId)
+    .eq('user_id', session.user.id)
+    .maybeSingle();
+
+  return !bookmarkError && !!bookmark;
+}

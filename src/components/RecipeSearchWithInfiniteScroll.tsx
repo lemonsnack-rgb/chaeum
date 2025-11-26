@@ -111,13 +111,6 @@ export function RecipeSearchWithInfiniteScroll({
         />
       </div>
 
-      {/* 결과 개수 */}
-      {!isInitialLoad && (
-        <p className="text-sm text-gray-600">
-          {recipes.length}개의 레시피를 찾았습니다
-        </p>
-      )}
-
       {/* 레시피 리스트 */}
       {isInitialLoad && loading ? (
         <div className="flex justify-center items-center py-12">
@@ -131,8 +124,9 @@ export function RecipeSearchWithInfiniteScroll({
         <>
           <RecipeList
             recipes={recipes}
-            onRecipeClick={onRecipeClick}
-            userIngredients={userIngredients}
+            onSelectRecipe={onRecipeClick}
+            onDeleteRecipe={() => {}}
+            hideDelete={true}
           />
 
           {/* 무한 스크롤 트리거 & 로딩 인디케이터 */}
