@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
-import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils } from 'lucide-react';
+import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils, Clock } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
 import { CameraButton } from './components/CameraButton';
 import { IngredientInput } from './components/IngredientInput';
 import { IngredientList } from './components/IngredientList';
 import { RecipeList } from './components/RecipeList';
 import { RecipeDetail } from './components/RecipeDetail';
-import { RecipeSearch } from './components/RecipeSearch';
+import { RecipeSearchWithInfiniteScroll } from './components/RecipeSearchWithInfiniteScroll';
 import { AuthModal } from './components/AuthModal';
 import { RecipeOptionsModal } from './components/RecipeOptionsModal';
 import { LoadingModal } from './components/LoadingModal';
 import { AllergyManager } from './components/AllergyManager';
-import { generateBatchRecipes, getUserRecipes, deleteRecipe, searchRecipes, searchPublicRecipes, saveUserRecipe, Recipe } from './lib/recipeService';
+import { generateBatchRecipes, deleteRecipe, saveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
 import { signOut, getCurrentUser, getUserProfile, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
+import { getRecentRecipeView } from './lib/recipeViewService';
 import {
   getUserAllergies,
   addAllergy,
@@ -24,13 +25,12 @@ import {
   ensureUserProfile
 } from './lib/profileService';
 
-type Tab = 'fridge' | 'recipe' | 'profile';
-type RecipeSubTab = 'search' | 'recommended' | 'saved';
+type Tab = 'fridge' | 'search' | 'my-recipes' | 'profile';
+type MyRecipesSubTab = 'recommended' | 'saved';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('fridge');
-  const [recipeSubTab, setRecipeSubTab] = useState<RecipeSubTab>('search');
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [myRecipesSubTab, setMyRecipesSubTab] = useState<MyRecipesSubTab>('recommended');
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -38,7 +38,6 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [showRecipeOptions, setShowRecipeOptions] = useState(false);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
@@ -76,15 +75,13 @@ function App() {
 
   useEffect(() => {
     checkAuth();
-    if (activeTab === 'recipe') {
+    if (activeTab === 'my-recipes') {
       loadRecipesBySubTab();
     }
-  }, [activeTab, recipeSubTab]);
+  }, [activeTab, myRecipesSubTab]);
 
   async function loadRecipesBySubTab() {
-    if (recipeSubTab === 'search') {
-      handleSearch('');
-    } else if (recipeSubTab === 'saved') {
+    if (myRecipesSubTab === 'saved') {
       await loadSavedRecipes();
     }
   }
@@ -147,29 +144,6 @@ function App() {
     }
   }
 
-  async function loadRecipes() {
-    try {
-      if (searchQuery.trim()) {
-        const searchResults = await searchRecipes(searchQuery);
-        setRecipes(searchResults);
-      } else {
-        const userRecipes = await getUserRecipes();
-        setRecipes(userRecipes);
-      }
-    } catch (error) {
-      console.error('Failed to load recipes:', error);
-    }
-  }
-
-  async function handleSearch(query: string) {
-    setSearchQuery(query);
-    try {
-      const searchResults = await searchPublicRecipes(query);
-      setRecipes(searchResults);
-    } catch (error) {
-      console.error('Search failed:', error);
-    }
-  }
 
   async function handleQuickSave(recipe: Recipe) {
     if (!isAuthenticated) {
@@ -268,8 +242,8 @@ function App() {
       ]);
 
       setRecommendedRecipes(generatedRecipes);
-      setActiveTab('recipe');
-      setRecipeSubTab('recommended');
+      setActiveTab('my-recipes');
+      setMyRecipesSubTab('recommended');
     } catch (error) {
       console.error('Failed to generate recipe:', error);
       alert('레시피 찾는 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -285,13 +259,33 @@ function App() {
 
     try {
       await deleteRecipe(recipeId);
-      await loadRecipes();
+      await loadSavedRecipes();
       if (selectedRecipe?.id === recipeId) {
         setSelectedRecipe(null);
       }
     } catch (error) {
       console.error('Failed to delete recipe:', error);
       alert('\ub808\uc2dc\ud53c \uc0ad\uc81c \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4.');
+    }
+  }
+
+  async function handleViewRecentRecipe() {
+    try {
+      const recentRecipeId = await getRecentRecipeView();
+      if (!recentRecipeId) {
+        alert('최근 본 레시피가 없습니다.');
+        return;
+      }
+
+      const recipe = await getRecipeById(recentRecipeId);
+      if (recipe) {
+        setSelectedRecipe(recipe);
+      } else {
+        alert('레시피를 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to load recent recipe:', error);
+      alert('레시피를 불러오는 중 오류가 발생했습니다.');
     }
   }
 
@@ -322,11 +316,23 @@ function App() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <div className="px-3 py-1 bg-orange-100 rounded-full">
-              <span className="text-xs font-semibold text-primary">
-                {ingredients.length}개 재료
-              </span>
-            </div>
+            {isAuthenticated ? (
+              <button
+                onClick={handleViewRecentRecipe}
+                className="flex items-center gap-1 px-3 py-1 bg-orange-100 hover:bg-orange-200 rounded-full transition-colors"
+              >
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-xs font-semibold text-primary">
+                  최근 본 레시피
+                </span>
+              </button>
+            ) : (
+              <div className="px-3 py-1 bg-orange-100 rounded-full">
+                <span className="text-xs font-semibold text-primary">
+                  {ingredients.length}개 재료
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -398,30 +404,27 @@ function App() {
           </>
         )}
 
-        {activeTab === 'recipe' && (
+        {activeTab === 'search' && (
+          <RecipeSearchWithInfiniteScroll
+            onRecipeClick={setSelectedRecipe}
+            userIngredients={ingredients.map((ing) => ing.name)}
+          />
+        )}
+
+        {activeTab === 'my-recipes' && (
           <>
             {/* 서브탭 네비게이션 */}
             <section className="mb-6">
               <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
                 <button
-                  onClick={() => setRecipeSubTab('search')}
+                  onClick={() => setMyRecipesSubTab('recommended')}
                   className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
-                    recipeSubTab === 'search'
+                    myRecipesSubTab === 'recommended'
                       ? 'bg-white text-primary shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  레시피 검색
-                </button>
-                <button
-                  onClick={() => setRecipeSubTab('recommended')}
-                  className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
-                    recipeSubTab === 'recommended'
-                      ? 'bg-white text-primary shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  추천 레시피
+                  AI 추천
                   {recommendedRecipes.length > 0 && (
                     <span className="ml-1 text-xs bg-primary text-white rounded-full px-2 py-0.5">
                       {recommendedRecipes.length}
@@ -429,9 +432,9 @@ function App() {
                   )}
                 </button>
                 <button
-                  onClick={() => setRecipeSubTab('saved')}
+                  onClick={() => setMyRecipesSubTab('saved')}
                   className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
-                    recipeSubTab === 'saved'
+                    myRecipesSubTab === 'saved'
                       ? 'bg-white text-primary shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
@@ -441,36 +444,8 @@ function App() {
               </div>
             </section>
 
-            {/* DB 검색 탭 */}
-            {recipeSubTab === 'search' && (
-              <>
-                <section className="mb-6">
-                  <RecipeSearch onSearch={handleSearch} />
-                </section>
-
-                <section className="mb-6">
-                  <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="text-lg font-bold text-gray-900">
-                      {searchQuery ? '검색 결과' : '전체 레시피'}
-                    </h3>
-                    {recipes.length > 0 && (
-                      <span className="text-sm text-gray-500">
-                        총 {recipes.length}개
-                      </span>
-                    )}
-                  </div>
-                  <RecipeList
-                    recipes={recipes}
-                    onSelectRecipe={setSelectedRecipe}
-                    onDeleteRecipe={handleDeleteRecipe}
-                    hideDelete={true}
-                  />
-                </section>
-              </>
-            )}
-
-            {/* 추천 레시피 탭 */}
-            {recipeSubTab === 'recommended' && (
+            {/* AI 추천 레시피 탭 */}
+            {myRecipesSubTab === 'recommended' && (
               <section className="mb-6">
                 <div className="flex items-center justify-between mb-4 px-1">
                   <h3 className="text-lg font-bold text-gray-900">AI 추천 레시피</h3>
@@ -523,8 +498,8 @@ function App() {
               </section>
             )}
 
-            {/* 내 저장 레시피 탭 */}
-            {recipeSubTab === 'saved' && (
+            {/* 저장한 레시피 탭 */}
+            {myRecipesSubTab === 'saved' && (
               <section className="mb-6">
                 <div className="flex items-center justify-between mb-4 px-1">
                   <h3 className="text-lg font-bold text-gray-900">저장한 레시피</h3>
@@ -561,7 +536,7 @@ function App() {
                     <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-500 mb-4">저장한 레시피가 없습니다.</p>
                     <button
-                      onClick={() => setRecipeSubTab('search')}
+                      onClick={() => setActiveTab('search')}
                       className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-all"
                     >
                       레시피 둘러보기
@@ -651,7 +626,7 @@ function App() {
           <div className="flex items-center justify-around">
             <button
               onClick={() => setActiveTab('fridge')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 transition-colors ${
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
                 activeTab === 'fridge' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -659,17 +634,26 @@ function App() {
               <span className="text-xs font-medium">냉장고</span>
             </button>
             <button
-              onClick={() => setActiveTab('recipe')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 transition-colors ${
-                activeTab === 'recipe' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+              onClick={() => setActiveTab('search')}
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
+                activeTab === 'search' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <Search className="w-5 h-5" />
+              <span className="text-xs font-medium">레시피 검색</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('my-recipes')}
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
+                activeTab === 'my-recipes' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               <ChefHat className="w-5 h-5" />
-              <span className="text-xs font-medium">레시피</span>
+              <span className="text-xs font-medium">내 레시피</span>
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 transition-colors ${
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
                 activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
