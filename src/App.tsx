@@ -273,7 +273,9 @@ function App() {
     try {
       const recentRecipeId = await getRecentRecipeView();
       if (!recentRecipeId) {
-        alert('최근 본 레시피가 없습니다.');
+        if (window.confirm('최근 본 레시피가 없습니다.\n레시피 검색 페이지로 이동하시겠습니까?')) {
+          setActiveTab('search');
+        }
         return;
       }
 
@@ -309,30 +311,25 @@ function App() {
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('fridge')}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <ChefHat className="w-7 h-7 text-primary" />
             <h1 className="text-xl font-bold text-gray-900">
               <span className="text-primary">오</span>늘의<span className="text-primary">냉</span>장고
             </h1>
-          </div>
+          </button>
           <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <button
-                onClick={handleViewRecentRecipe}
-                className="flex items-center gap-1 px-3 py-1 bg-orange-100 hover:bg-orange-200 rounded-full transition-colors"
-              >
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary">
-                  최근 본 레시피
-                </span>
-              </button>
-            ) : (
-              <div className="px-3 py-1 bg-orange-100 rounded-full">
-                <span className="text-xs font-semibold text-primary">
-                  {ingredients.length}개 재료
-                </span>
-              </div>
-            )}
+            <button
+              onClick={handleViewRecentRecipe}
+              className="flex items-center gap-1 px-3 py-1 bg-orange-100 hover:bg-orange-200 rounded-full transition-colors"
+            >
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-xs font-semibold text-primary">
+                최근 본 레시피
+              </span>
+            </button>
           </div>
         </div>
       </header>
@@ -390,12 +387,12 @@ function App() {
                   {generatingRecipe ? (
                     <>
                       <Loader2 className="w-6 h-6 animate-spin" />
-                      레시피 찾는 중...
+                      레시피 추천 중...
                     </>
                   ) : (
                     <>
                       <ChefHat className="w-6 h-6" />
-                      레시피 찾기
+                      레시피 추천 받기
                     </>
                   )}
                 </button>

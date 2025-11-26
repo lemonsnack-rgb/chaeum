@@ -8,6 +8,50 @@ interface IngredientListProps {
   onDelete: (id: string) => void;
 }
 
+// 재료 이름을 기반으로 카테고리 자동 판단
+function categorizeIngredient(name: string): { category: string; color: string } {
+  const lowerName = name.toLowerCase();
+
+  // 육류
+  const meats = ['소고기', '돼지고기', '닭고기', '양고기', '오리고기', '삼겹살', '목살', '등심', '안심', '갈비', '베이컨', '햄', '소시지'];
+  if (meats.some(meat => lowerName.includes(meat))) {
+    return { category: '육류', color: 'bg-red-100 text-red-700' };
+  }
+
+  // 해산물
+  const seafood = ['생선', '고등어', '삼치', '갈치', '연어', '참치', '새우', '오징어', '문어', '조개', '홍합', '굴', '게', '낙지', '멸치', '명태'];
+  if (seafood.some(item => lowerName.includes(item))) {
+    return { category: '해산물', color: 'bg-blue-100 text-blue-700' };
+  }
+
+  // 채소
+  const vegetables = ['양파', '당근', '배추', '무', '감자', '고구마', '브로콜리', '양배추', '시금치', '상추', '깻잎', '파', '마늘', '생강', '호박', '가지', '오이', '토마토', '피망', '고추', '버섯'];
+  if (vegetables.some(veg => lowerName.includes(veg))) {
+    return { category: '채소류', color: 'bg-green-100 text-green-700' };
+  }
+
+  // 양념/소스
+  const seasonings = ['간장', '된장', '고추장', '소금', '설탕', '식초', '참기름', '올리브유', '식용유', '후추', '고춧가루', '깨', '마요네즈', '케첩', '소스', '드레싱', '액젓', '굴소스', '조미료', '미림'];
+  if (seasonings.some(item => lowerName.includes(item))) {
+    return { category: '양념', color: 'bg-orange-100 text-orange-700' };
+  }
+
+  // 유제품
+  const dairy = ['우유', '치즈', '버터', '요구르트', '생크림', '크림', '두유'];
+  if (dairy.some(item => lowerName.includes(item))) {
+    return { category: '유제품', color: 'bg-yellow-100 text-yellow-700' };
+  }
+
+  // 곡물/면
+  const grains = ['쌀', '밀가루', '빵', '면', '파스타', '국수', '라면', '당면', '떡'];
+  if (grains.some(item => lowerName.includes(item))) {
+    return { category: '곡물', color: 'bg-amber-100 text-amber-700' };
+  }
+
+  // 기타
+  return { category: '기타', color: 'bg-gray-100 text-gray-700' };
+}
+
 export function IngredientList({ ingredients, onUpdate, onDelete }: IngredientListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -114,15 +158,14 @@ export function IngredientList({ ingredients, onUpdate, onDelete }: IngredientLi
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h4 className="font-semibold text-gray-900 text-lg">{ingredient.name}</h4>
-                  {ingredient.category && (
-                    <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                      ingredient.category === '주재료'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {ingredient.category}
-                    </span>
-                  )}
+                  {(() => {
+                    const { category, color } = categorizeIngredient(ingredient.name);
+                    return (
+                      <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${color}`}>
+                        {category}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
               <div className="w-20 text-center">
