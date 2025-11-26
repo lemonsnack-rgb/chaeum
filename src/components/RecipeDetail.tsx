@@ -24,6 +24,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(true);
 
   // 레시피 조회 기록 추적
   useEffect(() => {
@@ -35,12 +36,14 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
   // 북마크 상태 확인
   useEffect(() => {
     async function checkBookmarkStatus() {
+      setIsBookmarkLoading(true);
       if (recipe.id && isAuthenticated) {
         const bookmarked = await isRecipeBookmarked(recipe.id);
         setIsBookmarked(bookmarked);
       } else {
         setIsBookmarked(false);
       }
+      setIsBookmarkLoading(false);
     }
     checkBookmarkStatus();
   }, [recipe.id, isAuthenticated]);
