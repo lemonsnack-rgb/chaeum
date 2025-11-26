@@ -647,33 +647,33 @@ function App() {
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-md mx-auto px-4 py-3">
+        <div className="max-w-md mx-auto px-4 py-2.5">
           <div className="flex items-center justify-around">
             <button
               onClick={() => setActiveTab('fridge')}
-              className={`flex flex-col items-center gap-1 py-2 px-4 transition-colors ${
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 transition-colors ${
                 activeTab === 'fridge' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              <RefrigeratorIcon className="w-6 h-6" />
+              <RefrigeratorIcon className="w-5 h-5" />
               <span className="text-xs font-medium">냉장고</span>
             </button>
             <button
               onClick={() => setActiveTab('recipe')}
-              className={`flex flex-col items-center gap-1 py-2 px-4 transition-colors ${
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 transition-colors ${
                 activeTab === 'recipe' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              <ChefHat className="w-6 h-6" />
+              <ChefHat className="w-5 h-5" />
               <span className="text-xs font-medium">레시피</span>
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex flex-col items-center gap-1 py-2 px-4 transition-colors ${
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 transition-colors ${
                 activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              <User className="w-6 h-6" />
+              <User className="w-5 h-5" />
               <span className="text-xs font-medium">내 정보</span>
             </button>
           </div>

@@ -647,6 +647,55 @@ export async function searchPublicRecipes(searchQuery: string): Promise<Recipe[]
   return (data || []).map(databaseToRecipe);
 }
 
+/**
+ * 페이지네이션을 지원하는 레시피 검색 함수 (무한 스크롤용)
+ * @param searchQuery 검색어
+ * @param page 페이지 번호 (0부터 시작)
+ * @param pageSize 페이지당 항목 수
+ */
+export async function searchPublicRecipesPaginated(
+  searchQuery: string,
+  page: number = 0,
+  pageSize: number = 20
+): Promise<Recipe[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const query = searchQuery.toLowerCase().trim();
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  if (!query) {
+    const { data, error } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      console.error('Fetch error:', error);
+      return [];
+    }
+
+    return (data || []).map(databaseToRecipe);
+  }
+
+  const { data, error } = await supabase
+    .from('generated_recipes')
+    .select('*')
+    .or(`title.ilike.%${query}%,main_ingredients.cs.{${query}},theme_tags.cs.{${query}}`)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error('Search error:', error);
+    return [];
+  }
+
+  return (data || []).map(databaseToRecipe);
+}
+
 export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
   if (!supabase) {
     return [];
@@ -670,4 +719,25 @@ export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
   }
 
   return (data || []).map(databaseToRecipe);
+}
+/**
+ * ID로 레시피 조회 (최근 본 레시피 기능용)
+ */
+export async function getRecipeById(recipeId: string): Promise<Recipe | null> {
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('generated_recipes')
+    .select('*')
+    .eq('id', recipeId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching recipe by ID:', error);
+    return null;
+  }
+
+  return data ? databaseToRecipe(data) : null;
 }
