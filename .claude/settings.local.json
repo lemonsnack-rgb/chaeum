@@ -16,7 +16,8 @@
       "Bash(do echo '⏳ 배포 확인 중... ($i/18)')",
       "Bash(if exist \".git\\packed-refs.lock\" del \".git\\packed-refs.lock\")",
       "Bash(git restore:*)",
-      "Bash(if exist \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\.git\\packed-refs.lock\" del \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\.git\\packed-refs.lock\")"
+      "Bash(if exist \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\.git\\packed-refs.lock\" del \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\.git\\packed-refs.lock\")",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

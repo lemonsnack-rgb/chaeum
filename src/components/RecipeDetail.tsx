@@ -74,6 +74,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
           await onUnsave(recipe.id);
           setIsBookmarked(false);
           alert('저장이 취소되었습니다.');
+          onBack(); // 목록으로 돌아가기
         }
       } else {
         // 저장되지 않은 레시피인 경우 저장

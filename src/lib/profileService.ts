@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 export interface UserProfile {
   id: string;
   email: string;
+  nickname: string;
   allergies: string[];
   dietary_preferences: string[];
   created_at: string;

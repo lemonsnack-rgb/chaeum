@@ -154,37 +154,38 @@ export async function isRecipeBookmarked(recipeId: string): Promise<boolean> {
     return false;
   }
 
+  console.log('[isRecipeBookmarked] 체크 시작:', recipeId);
+
   // Check in user_recipes table using original_recipe_id
   const { data: userRecipe, error: userRecipeError } = await supabase
     .from('user_recipes')
-    .select('id')
+    .select('id, original_recipe_id')
     .eq('original_recipe_id', recipeId)
     .eq('user_id', session.user.id)
     .maybeSingle();
 
+  console.log('[isRecipeBookmarked] original_recipe_id 체크:', { userRecipe, userRecipeError });
+
   if (!userRecipeError && userRecipe) {
+    console.log('[isRecipeBookmarked] ✓ original_recipe_id로 찾음');
     return true;
   }
 
   // Also check if the recipe itself is from user_recipes (already saved)
   const { data: savedRecipe, error: savedRecipeError } = await supabase
     .from('user_recipes')
-    .select('id')
+    .select('id, original_recipe_id')
     .eq('id', recipeId)
     .eq('user_id', session.user.id)
     .maybeSingle();
 
+  console.log('[isRecipeBookmarked] id 체크:', { savedRecipe, savedRecipeError });
+
   if (!savedRecipeError && savedRecipe) {
+    console.log('[isRecipeBookmarked] ✓ id로 찾음');
     return true;
   }
 
-  // Check in bookmarks table
-  const { data: bookmark, error: bookmarkError } = await supabase
-    .from('bookmarks')
-    .select('id')
-    .eq('recipe_id', recipeId)
-    .eq('user_id', session.user.id)
-    .maybeSingle();
-
-  return !bookmarkError && !!bookmark;
+  console.log('[isRecipeBookmarked] ✗ 저장되지 않음');
+  return false;
 }

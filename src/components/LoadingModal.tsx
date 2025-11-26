@@ -54,79 +54,81 @@ export function LoadingModal({ isOpen, message = 'AI가 레시피를 찾고 있�
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
-        <div className="text-center mb-8">
-          <Loader2 className="w-20 h-20 text-primary animate-spin mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">레시피 찾는 중</h3>
-          <p className="text-sm text-gray-600">{message}</p>
-        </div>
-
-        {/* 프로그레스바 */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <span className="font-medium">진행 상황</span>
-            <span className="font-bold text-primary text-lg">{Math.round(progress)}%</span>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 sm:p-8">
+          <div className="text-center mb-6">
+            <Loader2 className="w-16 h-16 sm:w-20 sm:h-20 text-primary animate-spin mx-auto mb-3" />
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">레시피 찾는 중</h3>
+            <p className="text-sm text-gray-600">{message}</p>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-primary via-orange-500 to-orange-600 h-3 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
 
-        {/* 단계별 체크리스트 */}
-        <div className="space-y-4">
-          {steps.map((step, index) => {
-            const isCompleted = currentStep > index;
-            const isActive = currentStep === index;
-            const Icon = step.icon;
-
-            return (
+          {/* 프로그레스바 */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+              <span className="font-medium">진행 상황</span>
+              <span className="font-bold text-primary text-lg">{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
               <div
-                key={step.id}
-                className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
-                  isActive ? 'bg-orange-50 border-2 border-orange-200 scale-105' : ''
-                } ${isCompleted ? 'bg-green-50 border border-green-200' : 'border border-transparent'}`}
-              >
-                <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isCompleted
-                      ? 'bg-green-500'
-                      : isActive
-                      ? 'bg-primary'
-                      : 'bg-gray-200'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <Check className="w-5 h-5 text-white" />
-                  ) : isActive ? (
-                    <Icon className="w-5 h-5 text-white animate-pulse" />
-                  ) : (
-                    <Icon className="w-5 h-5 text-gray-400" />
-                  )}
-                </div>
-                <span
-                  className={`text-base font-semibold ${
-                    isCompleted
-                      ? 'text-green-700'
-                      : isActive
-                      ? 'text-primary'
-                      : 'text-gray-400'
-                  }`}
-                >
-                  {step.text}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                className="bg-gradient-to-r from-primary via-orange-500 to-orange-600 h-3 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
 
-        <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
-          <p className="text-sm text-blue-800 text-center font-medium">
-            💡 AI가 찾은 레시피는 자동으로 저장됩니다
-          </p>
+          {/* 단계별 체크리스트 */}
+          <div className="space-y-3">
+            {steps.map((step, index) => {
+              const isCompleted = currentStep > index;
+              const isActive = currentStep === index;
+              const Icon = step.icon;
+
+              return (
+                <div
+                  key={step.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${
+                    isActive ? 'bg-orange-50 border-2 border-orange-200' : ''
+                  } ${isCompleted ? 'bg-green-50 border border-green-200' : 'border border-transparent'}`}
+                >
+                  <div
+                    className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isCompleted
+                        ? 'bg-green-500'
+                        : isActive
+                        ? 'bg-primary'
+                        : 'bg-gray-200'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-5 h-5 text-white" />
+                    ) : isActive ? (
+                      <Icon className="w-5 h-5 text-white animate-pulse" />
+                    ) : (
+                      <Icon className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm sm:text-base font-semibold ${
+                      isCompleted
+                        ? 'text-green-700'
+                        : isActive
+                        ? 'text-primary'
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    {step.text}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <p className="text-sm text-blue-800 text-center font-medium">
+              💡 AI가 찾은 레시피는 자동으로 저장됩니다
+            </p>
+          </div>
         </div>
       </div>
     </div>

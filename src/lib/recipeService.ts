@@ -632,15 +632,23 @@ export async function unsaveUserRecipe(recipeId: string): Promise<void> {
     throw new Error('User must be logged in');
   }
 
-  // original_recipe_id로 저장된 레시피 삭제
-  const { error } = await supabase
-    .from('user_recipes')
-    .delete()
-    .eq('user_id', session.user.id)
-    .eq('original_recipe_id', recipeId);
+  console.log('[unsaveUserRecipe] 삭제 시도:', recipeId);
+
+  // RPC 함수 호출 (서버에서 id 또는 original_recipe_id로 삭제)
+  const { data, error } = await supabase.rpc('unsave_recipe', {
+    p_recipe_id: recipeId
+  });
+
+  console.log('[unsaveUserRecipe] RPC 결과:', { data, error });
 
   if (error) {
-    throw error;
+    console.error('[unsaveUserRecipe] 삭제 실패:', error);
+    throw new Error(error.message || '레시피 저장 취소에 실패했습니다.');
+  }
+
+  if (!data) {
+    console.warn('[unsaveUserRecipe] 삭제할 레시피를 찾지 못했습니다');
+    // 이미 삭제되었거나 존재하지 않는 경우 - 에러 발생하지 않음
   }
 }
 

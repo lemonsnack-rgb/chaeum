@@ -12,7 +12,7 @@ import { RecipeOptionsModal } from './components/RecipeOptionsModal';
 import { LoadingModal } from './components/LoadingModal';
 import { AllergyManager } from './components/AllergyManager';
 import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
-import { signOut, getCurrentUser, getUserProfile, getMyBookmarkedRecipes } from './lib/authService';
+import { signOut, getCurrentUser, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
 import { getRecentRecipeView } from './lib/recipeViewService';
 import {
@@ -22,7 +22,8 @@ import {
   getUserDietaryPreferences,
   addDietaryPreference,
   removeDietaryPreference,
-  ensureUserProfile
+  ensureUserProfile,
+  getUserProfile
 } from './lib/profileService';
 
 type Tab = 'fridge' | 'search' | 'my-recipes' | 'profile';
@@ -38,6 +39,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userNickname, setUserNickname] = useState<string | null>(null);
   const [showRecipeOptions, setShowRecipeOptions] = useState(false);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
@@ -135,8 +137,10 @@ function App() {
   async function loadUserProfile() {
     try {
       await ensureUserProfile();
+      const profile = await getUserProfile();
       const userAllergies = await getUserAllergies();
       const userPrefs = await getUserDietaryPreferences();
+      setUserNickname(profile?.nickname || null);
       setAllergies(userAllergies);
       setDietaryPreferences(userPrefs);
     } catch (error) {
@@ -159,7 +163,8 @@ function App() {
       throw new Error('로그인이 필요합니다.');
     }
     await unsaveUserRecipe(recipeId);
-    await loadSavedRecipes();
+    // 저장된 레시피 목록에서 즉시 제거 (더 나은 UX)
+    setSavedRecipes((prev: Recipe[]) => prev.filter((r: Recipe) => r.id !== recipeId));
   }
 
   async function handleSignOut() {
@@ -543,9 +548,14 @@ function App() {
                   <User className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 text-center mb-1">내 정보</h3>
-                <p className="text-xs text-gray-600 text-center mb-6">
+                <p className="text-xs text-gray-600 text-center mb-2">
                   {userEmail}
                 </p>
+                {userNickname && (
+                  <p className="text-sm text-primary font-semibold text-center mb-6">
+                    닉네임: {userNickname}님 환영합니다!
+                  </p>
+                )}
 
                 <div className="space-y-6">
                   {/* 저장된 재료 정보 */}
