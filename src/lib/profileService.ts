@@ -68,7 +68,7 @@ export async function ensureUserProfile(): Promise<void> {
 }
 
 /**
- * 알레르기 정보 조회
+ * 알레르기 정보 조회 (RPC 함수 사용 - 캐싱 완전 우회)
  */
 export async function getUserAllergies(): Promise<string[]> {
   if (!supabase) {
@@ -80,22 +80,21 @@ export async function getUserAllergies(): Promise<string[]> {
     return [];
   }
 
-  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - 매번 다른 타임스탬프 필터 사용)
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('allergies')
-    .eq('id', session.user.id)
-    .lte('created_at', new Date().toISOString())  // 현재 시간 이전 = 모든 레코드 (매번 다른 쿼리 생성)
-    .order('updated_at', { ascending: false })
-    .limit(1);
+  // RPC 함수 사용 (서버 사이드 실행 - 클라이언트 캐싱 우회)
+  const { data, error } = await supabase.rpc('get_current_user_profile');
 
-  const profile = profiles?.[0];
-  console.log('[getUserAllergies] 조회된 프로필:', profile);
+  if (error) {
+    console.error('[getUserAllergies] RPC 에러:', error);
+    return [];
+  }
+
+  const profile = data?.[0];
+  console.log('[getUserAllergies] RPC 조회된 프로필:', profile);
   return profile?.allergies || [];
 }
 
 /**
- * 알레르기 추가
+ * 알레르기 추가 (RPC 함수 사용 - 캐싱 완전 우회)
  */
 export async function addAllergy(allergyName: string): Promise<string[]> {
   console.log('[profileService] addAllergy 시작:', allergyName);
@@ -116,61 +115,26 @@ export async function addAllergy(allergyName: string): Promise<string[]> {
     console.error('[profileService] 세션 없음');
     throw new Error('로그인이 필요합니다');
   }
-  console.log('[profileService] 세션 확인됨:', session.user.id);
 
   // 프로필이 없으면 자동 생성
-  console.log('[profileService] ensureUserProfile 호출');
   await ensureUserProfile();
-  console.log('[profileService] ensureUserProfile 완료');
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - 매번 다른 타임스탬프 필터 사용)
-  console.log('[profileService] DB에서 최신 프로필 조회');
-  const { data: profiles, error: fetchError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .lte('created_at', new Date().toISOString())  // 현재 시간 이전 = 모든 레코드 (매번 다른 쿼리 생성)
-    .order('updated_at', { ascending: false })
-    .limit(1);
-
-  const profile = profiles?.[0];
-  if (fetchError || !profile) {
-    console.error('[profileService] 프로필 조회 실패:', fetchError);
-    throw new Error('Failed to retrieve user profile');
-  }
-  console.log('[profileService] 프로필 조회 결과:', profile);
-
-  const currentAllergies = profile.allergies || [];
-  console.log('[profileService] 현재 알레르기:', currentAllergies);
-
-  if (currentAllergies.includes(trimmed)) {
-    console.warn('[profileService] 중복된 알레르기:', trimmed);
-    throw new Error('이미 등록된 알레르기입니다');
-  }
-
-  const updatedAllergies = [...currentAllergies, trimmed];
-  console.log('[profileService] 업데이트할 알레르기:', updatedAllergies);
-
-  console.log('[profileService] profiles 테이블 업데이트 시도');
-  const { data: updatedProfile, error } = await supabase
-    .from('profiles')
-    .update({ allergies: updatedAllergies })
-    .eq('id', session.user.id)
-    .select()
-    .single();
+  // RPC 함수 호출 (서버 사이드 실행)
+  const { data: updatedAllergies, error } = await supabase.rpc('add_user_allergy', {
+    allergy_name: trimmed
+  });
 
   if (error) {
-    console.error('[profileService] 업데이트 에러:', error);
-    throw new Error('알레르기 정보 추가 중 오류가 발생했습니다');
+    console.error('[profileService] RPC 에러:', error);
+    throw new Error(error.message || '알레르기 정보 추가 중 오류가 발생했습니다');
   }
 
-  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
-  console.log('[profileService] addAllergy 완료, 반환값:', updatedAllergies);
-  return updatedAllergies;
+  console.log('[profileService] RPC 성공, 반환값:', updatedAllergies);
+  return updatedAllergies || [];
 }
 
 /**
- * 알레르기 삭제
+ * 알레르기 삭제 (RPC 함수 사용 - 캐싱 완전 우회)
  */
 export async function removeAllergy(allergyName: string): Promise<string[]> {
   console.log('[profileService] removeAllergy 시작:', allergyName);
@@ -184,48 +148,22 @@ export async function removeAllergy(allergyName: string): Promise<string[]> {
     throw new Error('로그인이 필요합니다');
   }
 
-  // 프로필이 없으면 자동 생성
-  await ensureUserProfile();
-
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - 매번 다른 타임스탬프 필터 사용)
-  const { data: profiles, error: fetchError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .lte('created_at', new Date().toISOString())  // 현재 시간 이전 = 모든 레코드 (매번 다른 쿼리 생성)
-    .order('updated_at', { ascending: false })
-    .limit(1);
-
-  const profile = profiles?.[0];
-  if (fetchError || !profile) {
-    console.error('[profileService] 프로필 조회 실패:', fetchError);
-    throw new Error('Failed to retrieve user profile');
-  }
-
-  const updatedAllergies = (profile.allergies || []).filter(
-    (a) => a !== allergyName
-  );
-  console.log('[profileService] 삭제 후 알레르기:', updatedAllergies);
-
-  const { data: updatedProfile, error } = await supabase
-    .from('profiles')
-    .update({ allergies: updatedAllergies })
-    .eq('id', session.user.id)
-    .select()
-    .single();
+  // RPC 함수 호출 (서버 사이드 실행)
+  const { data: updatedAllergies, error } = await supabase.rpc('remove_user_allergy', {
+    allergy_name: allergyName
+  });
 
   if (error) {
-    console.error('[profileService] 삭제 에러:', error);
+    console.error('[profileService] RPC 에러:', error);
     throw new Error('알레르기 정보 삭제 중 오류가 발생했습니다');
   }
 
-  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
-  console.log('[profileService] removeAllergy 완료');
-  return updatedAllergies;
+  console.log('[profileService] RPC 성공, 반환값:', updatedAllergies);
+  return updatedAllergies || [];
 }
 
 /**
- * 편식 정보 조회
+ * 편식 정보 조회 (RPC 함수 사용 - 캐싱 완전 우회)
  */
 export async function getUserDietaryPreferences(): Promise<string[]> {
   if (!supabase) {
@@ -237,22 +175,21 @@ export async function getUserDietaryPreferences(): Promise<string[]> {
     return [];
   }
 
-  // DB에서 직접 최신 데이터 조회 (캐시 완전 우회 - 매번 다른 타임스탬프 필터 사용)
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('dietary_preferences')
-    .eq('id', session.user.id)
-    .lte('created_at', new Date().toISOString())  // 현재 시간 이전 = 모든 레코드 (매번 다른 쿼리 생성)
-    .order('updated_at', { ascending: false })
-    .limit(1);
+  // RPC 함수 사용 (서버 사이드 실행 - 클라이언트 캐싱 우회)
+  const { data, error } = await supabase.rpc('get_current_user_profile');
 
-  const profile = profiles?.[0];
-  console.log('[getUserDietaryPreferences] 조회된 프로필:', profile);
+  if (error) {
+    console.error('[getUserDietaryPreferences] RPC 에러:', error);
+    return [];
+  }
+
+  const profile = data?.[0];
+  console.log('[getUserDietaryPreferences] RPC 조회된 프로필:', profile);
   return profile?.dietary_preferences || [];
 }
 
 /**
- * 편식 추가
+ * 편식 추가 (RPC 함수 사용 - 캐싱 완전 우회)
  */
 export async function addDietaryPreference(prefName: string): Promise<string[]> {
   console.log('[profileService] addDietaryPreference 시작:', prefName);
@@ -274,51 +211,22 @@ export async function addDietaryPreference(prefName: string): Promise<string[]> 
   // 프로필이 없으면 자동 생성
   await ensureUserProfile();
 
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - 매번 다른 타임스탬프 필터 사용)
-  const { data: profiles, error: fetchError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .lte('created_at', new Date().toISOString())  // 현재 시간 이전 = 모든 레코드 (매번 다른 쿼리 생성)
-    .order('updated_at', { ascending: false })
-    .limit(1);
-
-  const profile = profiles?.[0];
-  if (fetchError || !profile) {
-    console.error('[profileService] 프로필 조회 실패:', fetchError);
-    throw new Error('Failed to retrieve user profile');
-  }
-  console.log('[profileService] 프로필 조회 결과:', profile);
-
-  const currentPrefs = profile.dietary_preferences || [];
-  console.log('[profileService] 현재 편식:', currentPrefs);
-
-  if (currentPrefs.includes(trimmed)) {
-    throw new Error('이미 등록된 편식 정보입니다');
-  }
-
-  const updatedPrefs = [...currentPrefs, trimmed];
-  console.log('[profileService] 업데이트할 편식:', updatedPrefs);
-
-  const { data: updatedProfile, error } = await supabase
-    .from('profiles')
-    .update({ dietary_preferences: updatedPrefs })
-    .eq('id', session.user.id)
-    .select()
-    .single();
+  // RPC 함수 호출 (서버 사이드 실행)
+  const { data: updatedPrefs, error } = await supabase.rpc('add_user_dietary_preference', {
+    pref_name: trimmed
+  });
 
   if (error) {
-    console.error('[profileService] 편식 추가 에러:', error);
-    throw new Error('편식 정보 추가 중 오류가 발생했습니다');
+    console.error('[profileService] RPC 에러:', error);
+    throw new Error(error.message || '편식 정보 추가 중 오류가 발생했습니다');
   }
 
-  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
-  console.log('[profileService] addDietaryPreference 완료');
-  return updatedPrefs;
+  console.log('[profileService] RPC 성공, 반환값:', updatedPrefs);
+  return updatedPrefs || [];
 }
 
 /**
- * 편식 삭제
+ * 편식 삭제 (RPC 함수 사용 - 캐싱 완전 우회)
  */
 export async function removeDietaryPreference(prefName: string): Promise<string[]> {
   console.log('[profileService] removeDietaryPreference 시작:', prefName);
@@ -332,42 +240,16 @@ export async function removeDietaryPreference(prefName: string): Promise<string[
     throw new Error('로그인이 필요합니다');
   }
 
-  // 프로필이 없으면 자동 생성
-  await ensureUserProfile();
-
-  // DB에서 직접 최신 프로필 조회 (캐시 우회 - 매번 다른 타임스탬프 필터 사용)
-  const { data: profiles, error: fetchError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .lte('created_at', new Date().toISOString())  // 현재 시간 이전 = 모든 레코드 (매번 다른 쿼리 생성)
-    .order('updated_at', { ascending: false })
-    .limit(1);
-
-  const profile = profiles?.[0];
-  if (fetchError || !profile) {
-    console.error('[profileService] 프로필 조회 실패:', fetchError);
-    throw new Error('Failed to retrieve user profile');
-  }
-
-  const updatedPrefs = (profile.dietary_preferences || []).filter(
-    (p) => p !== prefName
-  );
-  console.log('[profileService] 삭제 후 편식:', updatedPrefs);
-
-  const { data: updatedProfile, error } = await supabase
-    .from('profiles')
-    .update({ dietary_preferences: updatedPrefs })
-    .eq('id', session.user.id)
-    .select()
-    .single();
+  // RPC 함수 호출 (서버 사이드 실행)
+  const { data: updatedPrefs, error } = await supabase.rpc('remove_user_dietary_preference', {
+    pref_name: prefName
+  });
 
   if (error) {
-    console.error('[profileService] 편식 삭제 에러:', error);
+    console.error('[profileService] RPC 에러:', error);
     throw new Error('편식 정보 삭제 중 오류가 발생했습니다');
   }
 
-  console.log('[profileService] 업데이트된 프로필:', updatedProfile);
-  console.log('[profileService] removeDietaryPreference 완료');
-  return updatedPrefs;
+  console.log('[profileService] RPC 성공, 반환값:', updatedPrefs);
+  return updatedPrefs || [];
 }
