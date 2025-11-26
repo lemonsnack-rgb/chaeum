@@ -11,6 +11,9 @@ import { AuthModal } from './components/AuthModal';
 import { RecipeOptionsModal } from './components/RecipeOptionsModal';
 import { LoadingModal } from './components/LoadingModal';
 import { AllergyManager } from './components/AllergyManager';
+import { Footer } from './components/Footer';
+import { AboutModal } from './components/AboutModal';
+import { ServiceBanner } from './components/ServiceBanner';
 import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
 import { signOut, getCurrentUser, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
@@ -41,6 +44,7 @@ function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userNickname, setUserNickname] = useState<string | null>(null);
   const [showRecipeOptions, setShowRecipeOptions] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
   const {
@@ -335,6 +339,9 @@ function App() {
       <main className="max-w-md mx-auto px-4 py-6">
         {activeTab === 'fridge' && (
           <>
+            {/* 서비스 소개 배너 */}
+            <ServiceBanner onShowMore={() => setShowAboutModal(true)} />
+
             <section className="mb-6">
               <CameraButton onIngredientsExtracted={handleIngredientsExtracted} />
             </section>
@@ -666,11 +673,21 @@ function App() {
         </div>
       </nav>
 
+      {/* 푸터 */}
+      <Footer onShowAbout={() => setShowAboutModal(true)} />
+
+      {/* 모달들 */}
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
       {showRecipeOptions && (
         <RecipeOptionsModal
           onClose={() => setShowRecipeOptions(false)}
           onGenerate={handleGenerateWithOptions}
+        />
+      )}
+      {showAboutModal && (
+        <AboutModal
+          isOpen={showAboutModal}
+          onClose={() => setShowAboutModal(false)}
         />
       )}
       <LoadingModal isOpen={generatingRecipe} message="AI가 레시피를 찾고 있습니다..." />
