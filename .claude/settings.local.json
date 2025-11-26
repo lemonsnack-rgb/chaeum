@@ -13,7 +13,9 @@
       "Bash(do echo '⏳ 확인 중... ($i/18)')",
       "Bash(exit 0)",
       "Bash(done)",
-      "Bash(do echo '⏳ 배포 확인 중... ($i/18)')"
+      "Bash(do echo '⏳ 배포 확인 중... ($i/18)')",
+      "Bash(if exist \".git\\packed-refs.lock\" del \".git\\packed-refs.lock\")",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

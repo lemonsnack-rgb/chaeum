@@ -1,6 +1,8 @@
 import { Clock, Users, ChefHat, ArrowLeft, AlertCircle, ExternalLink, Edit, Save, Heart } from 'lucide-react';
 import { Recipe } from '../lib/recipeService';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { trackRecipeView } from '../lib/recipeViewService';
+import { CommentSection } from './CommentSection';
 
 interface RecipeDetailProps {
   recipe: Recipe;
@@ -19,6 +21,13 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
   const [safetyConsent, setSafetyConsent] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // 레시피 조회 기록 추적
+  useEffect(() => {
+    if (recipe.id) {
+      trackRecipeView(recipe.id);
+    }
+  }, [recipe.id]);
 
   const totalNutrition = recipe.nutrition.calories || 0;
   const proteinPercent = totalNutrition > 0 ? (recipe.nutrition.protein * 4 / totalNutrition * 100) : 0;
@@ -416,6 +425,15 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
             )}
           </div>
         </div>
+
+        {/* 댓글 섹션 */}
+        {recipe.id && (
+          <CommentSection
+            recipeId={recipe.id}
+            isAuthenticated={isAuthenticated}
+            onLoginRequired={() => onShowAuthModal?.()}
+          />
+        )}
       </main>
 
       {showConsentModal && (
