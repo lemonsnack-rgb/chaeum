@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils, Clock } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
 import { CameraButton } from './components/CameraButton';
@@ -33,6 +34,7 @@ type Tab = 'fridge' | 'search' | 'my-recipes' | 'profile';
 type MyRecipesSubTab = 'recommended' | 'saved';
 
 function App() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('fridge');
   const [myRecipesSubTab, setMyRecipesSubTab] = useState<MyRecipesSubTab>('recommended');
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
@@ -270,6 +272,10 @@ function App() {
     }
   }
 
+  function handleRecipeClick(recipe: Recipe) {
+    navigate(`/recipe/${recipe.id}`);
+  }
+
   async function handleViewRecentRecipe() {
     try {
       const recentRecipeId = await getRecentRecipeView();
@@ -280,12 +286,7 @@ function App() {
         return;
       }
 
-      const recipe = await getRecipeById(recentRecipeId);
-      if (recipe) {
-        setSelectedRecipe(recipe);
-      } else {
-        alert('레시피를 찾을 수 없습니다.');
-      }
+      navigate(`/recipe/${recentRecipeId}`);
     } catch (error) {
       console.error('Failed to load recent recipe:', error);
       alert('레시피를 불러오는 중 오류가 발생했습니다.');
@@ -408,7 +409,7 @@ function App() {
 
         {activeTab === 'search' && (
           <RecipeSearchWithInfiniteScroll
-            onRecipeClick={setSelectedRecipe}
+            onRecipeClick={handleRecipeClick}
             userIngredients={ingredients.map((ing) => ing.name)}
           />
         )}
@@ -461,7 +462,7 @@ function App() {
                   <>
                     <RecipeList
                       recipes={recommendedRecipes}
-                      onSelectRecipe={setSelectedRecipe}
+                      onSelectRecipe={handleRecipeClick}
                     />
                     <div className="mt-6">
                       <button
@@ -528,7 +529,7 @@ function App() {
                 ) : savedRecipes.length > 0 ? (
                   <RecipeList
                     recipes={savedRecipes}
-                    onSelectRecipe={setSelectedRecipe}
+                    onSelectRecipe={handleRecipeClick}
                   />
                 ) : (
                   <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 text-center">
