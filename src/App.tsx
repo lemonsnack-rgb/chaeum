@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils, Clock } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
 import { CameraButton } from './components/CameraButton';
@@ -311,8 +312,22 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+    <>
+      <Helmet>
+        <title>건강하게 채우고, 맛있게 비우다 - 오늘의냉장고</title>
+        <meta name="description" content="AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천합니다. 음식에 관한 정보를 나누고 맛있는 일상을 이어가세요." />
+        <meta property="og:title" content="오늘의냉장고" />
+        <meta property="og:description" content="AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천합니다" />
+        <meta property="og:image" content="https://www.oneulfridge.com/og-image.png" />
+        <meta property="og:url" content="https://www.oneulfridge.com" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="오늘의냉장고" />
+        <meta name="twitter:description" content="AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천합니다" />
+        <meta name="twitter:image" content="https://www.oneulfridge.com/og-image.png" />
+      </Helmet>
+
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
+        <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => setActiveTab('fridge')}
@@ -692,7 +707,8 @@ function App() {
         />
       )}
       <LoadingModal isOpen={generatingRecipe} message="AI가 레시피를 찾고 있습니다..." />
-    </div>
+      </div>
+    </>
   );
 }
 
