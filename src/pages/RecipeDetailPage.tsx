@@ -140,10 +140,11 @@ export function RecipeDetailPage() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${recipe.name} - 오늘의냉장고`} />
         <meta name="twitter:description" content={recipe.description || `${recipe.name} 레시피`} />
-        <script type="application/ld+json">
-          {JSON.stringify(generateRecipeSchema(recipe))}
-        </script>
       </Helmet>
+
+      <script type="application/ld+json" dangerouslySetInnerHTML={{
+        __html: JSON.stringify(generateRecipeSchema(recipe))
+      }} />
 
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
         <div className="max-w-md mx-auto px-4 py-6">
