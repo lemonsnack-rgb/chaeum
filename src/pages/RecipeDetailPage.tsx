@@ -41,6 +41,7 @@ export function RecipeDetailPage() {
         return;
       }
 
+      console.log('[RecipeDetailPage] Loaded recipe:', recipeData);
       setRecipe(recipeData);
     } catch (err) {
       console.error('Failed to load recipe:', err);
@@ -75,8 +76,8 @@ export function RecipeDetailPage() {
     return {
       "@context": "https://schema.org",
       "@type": "Recipe",
-      "name": recipe.name,
-      "description": recipe.description || `${recipe.name} 레시피입니다.`,
+      "name": recipe.name || "레시피",
+      "description": recipe.description || `${recipe.name || '레시피'}입니다.`,
       "recipeIngredient": recipe.ingredients || [],
       "recipeInstructions": recipe.instructions?.map((step, index) => ({
         "@type": "HowToStep",
@@ -84,7 +85,7 @@ export function RecipeDetailPage() {
         "text": step
       })) || [],
       "recipeCuisine": "한식",
-      "keywords": recipe.ingredients?.join(', '),
+      "keywords": recipe.ingredients?.join(', ') || "",
       "author": {
         "@type": "Organization",
         "name": "오늘의냉장고"
@@ -131,15 +132,15 @@ export function RecipeDetailPage() {
   return (
     <>
       <Helmet>
-        <title>{recipe.name} - 오늘의냉장고</title>
-        <meta name="description" content={recipe.description || `${recipe.name} 레시피입니다. ${recipe.ingredients?.join(', ')}로 만드는 요리입니다.`} />
-        <meta property="og:title" content={`${recipe.name} - 오늘의냉장고`} />
-        <meta property="og:description" content={recipe.description || `${recipe.name} 레시피`} />
+        <title>{recipe.name || '레시피'} - 오늘의냉장고</title>
+        <meta name="description" content={recipe.description || `${recipe.name || '레시피'}입니다. ${recipe.ingredients?.join(', ') || ''}`} />
+        <meta property="og:title" content={`${recipe.name || '레시피'} - 오늘의냉장고`} />
+        <meta property="og:description" content={recipe.description || `${recipe.name || '레시피'}`} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://www.oneulfridge.com/recipe/${recipe.id}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${recipe.name} - 오늘의냉장고`} />
-        <meta name="twitter:description" content={recipe.description || `${recipe.name} 레시피`} />
+        <meta name="twitter:title" content={`${recipe.name || '레시피'} - 오늘의냉장고`} />
+        <meta name="twitter:description" content={recipe.description || `${recipe.name || '레시피'}`} />
       </Helmet>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{
