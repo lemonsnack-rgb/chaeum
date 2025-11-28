@@ -328,25 +328,28 @@ function App() {
 
       <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
         <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setActiveTab('fridge')}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <ChefHat className="w-7 h-7 text-primary" />
-            <h1 className="text-xl font-bold text-gray-900">
-              <span className="text-primary">오</span>늘의<span className="text-primary">냉</span>장고
-            </h1>
+            <h1 className="text-xl font-bold text-gray-900">오늘의냉장고</h1>
           </button>
           <div className="flex items-center gap-2">
             <button
-              onClick={handleViewRecentRecipe}
-              className="flex items-center gap-1 px-3 py-1 bg-orange-100 hover:bg-orange-200 rounded-full transition-colors"
+              onClick={() => {/* TODO: 검색 기능 */}}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="검색"
             >
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="text-xs font-semibold text-primary">
-                최근 본 레시피
-              </span>
+              <Search className="w-6 h-6 text-gray-700" />
+            </button>
+            <button
+              onClick={handleViewRecentRecipe}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="최근 본 레시피"
+            >
+              <Clock className="w-6 h-6 text-gray-700" />
             </button>
           </div>
         </div>
