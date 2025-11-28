@@ -135,9 +135,9 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
       </div>
 
       {/* 댓글 작성 폼 */}
-      <form onSubmit={handleSubmit} className="mb-6 space-y-3">
+      <form onSubmit={handleSubmit} className="mb-6 space-y-3 w-full">
         {!isAuthenticated && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 w-full">
             <input
               type="text"
               value={guestNickname}
@@ -156,7 +156,7 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
             />
           </div>
         )}
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center w-full">
           <input
             type="text"
             value={newComment}
