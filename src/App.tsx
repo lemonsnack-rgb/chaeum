@@ -8,6 +8,7 @@ import { IngredientInput } from './components/IngredientInput';
 import { IngredientList } from './components/IngredientList';
 import { RecipeList } from './components/RecipeList';
 import { RecipeDetail } from './components/RecipeDetail';
+import { InventoryAnalysis } from './components/InventoryAnalysis';
 import { RecipeSearchWithInfiniteScroll } from './components/RecipeSearchWithInfiniteScroll';
 import { AuthModal } from './components/AuthModal';
 import { RecipeOptionsModal } from './components/RecipeOptionsModal';
@@ -19,6 +20,8 @@ import { ServiceBanner } from './components/ServiceBanner';
 import { Layout } from './components/Layout';
 import { Tab } from './components/BottomNav';
 import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
+import { analyzeInventory } from './lib/gemini';
+import { InventoryAnalysis as InventoryAnalysisType } from './types/inventory';
 import { signOut, getCurrentUser, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
 import { getRecentRecipeView } from './lib/recipeViewService';
@@ -54,6 +57,10 @@ function App() {
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(''); // 검색어 상태 추가
   const [imageProcessing, setImageProcessing] = useState(false); // 이미지 처리 중 상태
+  const [inventoryAnalysis, setInventoryAnalysis] = useState<InventoryAnalysisType | null>(null);
+  const [analyzingInventory, setAnalyzingInventory] = useState(false);
+  const [lastAnalyzedIngredients, setLastAnalyzedIngredients] = useState<string[]>([]);
+  const [needsInventoryUpdate, setNeedsInventoryUpdate] = useState(false);
   const {
     ingredients,
     loading,
@@ -83,6 +90,66 @@ function App() {
       await addIngredient(name, quantity);
     } catch (error) {
       alert('식재료 추가 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 재료 변경 감지
+  useEffect(() => {
+    const currentIngredientNames = ingredients.map((i: any) => i.name).sort().join(',');
+    const lastIngredientNames = lastAnalyzedIngredients.sort().join(',');
+
+    if (lastAnalyzedIngredients.length > 0 && currentIngredientNames !== lastIngredientNames) {
+      setNeedsInventoryUpdate(true);
+    }
+  }, [ingredients, lastAnalyzedIngredients]);
+
+  // 캐시에서 분석 결과 로드
+  useEffect(() => {
+    const cached = localStorage.getItem('inventory_analysis');
+    if (cached) {
+      try {
+        const data = JSON.parse(cached);
+        setInventoryAnalysis(data.result);
+        setLastAnalyzedIngredients(data.ingredients || []);
+      } catch (error) {
+        console.error('Failed to load cached analysis:', error);
+      }
+    }
+  }, []);
+
+  // 냉장고 재료 분석
+  const handleAnalyzeInventory = async () => {
+    if (ingredients.length < 3) {
+      alert('재료가 3개 이상 있어야 분석할 수 있습니다.');
+      return;
+    }
+
+    setAnalyzingInventory(true);
+    try {
+      const ingredientNames = ingredients.map((i: any) => i.name);
+      const result = await analyzeInventory(ingredientNames);
+
+      const analysis: InventoryAnalysisType = {
+        ...result,
+        analyzedAt: Date.now(),
+        ingredientSnapshot: ingredientNames
+      };
+
+      setInventoryAnalysis(analysis);
+      setLastAnalyzedIngredients(ingredientNames);
+      setNeedsInventoryUpdate(false);
+
+      // 로컬 스토리지에 캐싱
+      localStorage.setItem('inventory_analysis', JSON.stringify({
+        result: analysis,
+        ingredients: ingredientNames,
+        timestamp: Date.now()
+      }));
+    } catch (error: any) {
+      console.error('Inventory analysis failed:', error);
+      alert(error.message || '냉장고 분석 중 오류가 발생했습니다.');
+    } finally {
+      setAnalyzingInventory(false);
     }
   };
 
@@ -415,6 +482,19 @@ function App() {
                     </>
                   )}
                 </button>
+              </section>
+            )}
+
+            {/* 냉장고 재료 분석 */}
+            {ingredients.length > 0 && (
+              <section className="mt-6">
+                <InventoryAnalysis
+                  ingredients={ingredients}
+                  onAnalyze={handleAnalyzeInventory}
+                  analysis={inventoryAnalysis}
+                  analyzing={analyzingInventory}
+                  needsUpdate={needsInventoryUpdate}
+                />
               </section>
             )}
           </>

@@ -110,3 +110,111 @@ export async function classifyIngredient(ingredientName: string): Promise<string
     return '주재료';
   }
 }
+
+export async function analyzeInventory(ingredients: string[]): Promise<any> {
+  if (!genAI) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  const prompt = `다음은 사용자의 냉장고에 있는 재료 목록입니다:
+${ingredients.join(', ')}
+
+이 재료들을 카테고리별로 분류하고, 부족한 재료를 추천해주세요.
+
+## 분석 기준
+
+### 카테고리 분류
+- 육류: 소고기, 돼지고기, 닭고기, 양고기 등
+- 채소: 모든 채소류 (당근, 양파, 감자, 배추, 상추 등)
+- 수산물: 생선, 오징어, 새우, 조개 등
+- 양념: 소금, 간장, 고추장, 된장, 설탕, 식초, 참기름, 식용유, 마늘, 생강 등
+- 가공식품: 라면, 통조림, 햄, 소시지, 치즈 등
+- 기타: 쌀, 달걀, 우유, 두부 등 위 카테고리에 속하지 않는 재료
+
+### 상태 평가
+- "sufficient": 해당 카테고리에 3개 이상의 재료가 있음
+- "low": 1-2개의 재료만 있음
+- "empty": 재료가 없음
+
+### 추천 기준
+- 없거나 부족한 카테고리에 대해서만 추천
+- 영양 균형을 고려한 추천
+- 한국 가정에서 자주 사용하는 재료 우선 추천
+- 카테고리당 2-3개의 구체적인 재료 추천
+
+## 응답 형식
+
+다음 JSON 형식으로만 응답하세요. 설명이나 주석 없이 JSON만 반환하세요:
+
+{
+  "categories": [
+    {
+      "name": "육류",
+      "icon": "📦",
+      "items": ["소고기", "닭고기"],
+      "status": "sufficient"
+    },
+    {
+      "name": "채소",
+      "icon": "🥬",
+      "items": ["당근", "양파", "감자"],
+      "status": "sufficient"
+    },
+    {
+      "name": "수산물",
+      "icon": "🐟",
+      "items": [],
+      "status": "empty"
+    },
+    {
+      "name": "양념",
+      "icon": "🧂",
+      "items": ["소금", "간장"],
+      "status": "low"
+    },
+    {
+      "name": "가공식품",
+      "icon": "🥫",
+      "items": ["라면"],
+      "status": "low"
+    },
+    {
+      "name": "기타",
+      "icon": "📌",
+      "items": ["쌀", "달걀"],
+      "status": "sufficient"
+    }
+  ],
+  "suggestions": [
+    {
+      "category": "수산물",
+      "items": ["생선", "오징어", "새우"],
+      "reason": "단백질 균형을 위해"
+    },
+    {
+      "category": "양념",
+      "items": ["고추장", "된장", "참기름"],
+      "reason": "다양한 요리를 위해"
+    }
+  ]
+}
+
+반드시 위 형식의 JSON만 반환하세요.`;
+
+  const result = await model.generateContent(prompt);
+  const response = result.response;
+  const text = response.text();
+
+  console.log('Gemini inventory analysis response:', text);
+
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    const analysis = JSON.parse(jsonMatch[0]);
+    console.log('Parsed inventory analysis:', analysis);
+    return analysis;
+  }
+
+  throw new Error('Failed to parse inventory analysis response');
+}

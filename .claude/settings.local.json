@@ -29,7 +29,8 @@
       "Bash(else echo \"SearchPage.tsx does not exist\")",
       "Bash(fi)",
       "Bash(if curl -s -o /dev/null -w %{http_code} https://oneulfridge.com)",
-      "Bash(then echo \"✅ 배포 완료! 사이트가 정상적으로 응답합니다.\")"
+      "Bash(then echo \"✅ 배포 완료! 사이트가 정상적으로 응답합니다.\")",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
