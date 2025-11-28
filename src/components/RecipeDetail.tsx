@@ -339,37 +339,41 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                 영양 정보 (1인분)
               </h3>
 
-              {/* 영양소 상세 */}
-              <div className="bg-white rounded-2xl p-5 shadow-md border-2 border-gray-200 mb-8">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">
-                      {displayRecipe.nutrition.calories}
-                    </div>
-                    <div className="text-sm text-gray-600">칼로리 (kcal)</div>
+              {/* 칼로리 */}
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 shadow-md border-2 border-orange-200 mb-5">
+                <div className="text-center">
+                  <div className="text-5xl font-bold text-primary mb-2">
+                    {displayRecipe.nutrition.calories}
                   </div>
+                  <div className="text-base font-semibold text-gray-700">칼로리 (kcal)</div>
+                </div>
+              </div>
+
+              {/* 영양소 */}
+              <div className="bg-white rounded-2xl p-5 shadow-md border-2 border-gray-200 mb-5">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-1">
+                    <div className="text-2xl font-bold text-blue-600 mb-1">
                       {displayRecipe.nutrition.protein}g
                     </div>
-                    <div className="text-sm text-gray-600">단백질</div>
+                    <div className="text-xs text-gray-600">단백질</div>
                   </div>
                   <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 text-center">
-                    <div className="text-3xl font-bold text-red-600 mb-1">
+                    <div className="text-2xl font-bold text-red-600 mb-1">
                       {displayRecipe.nutrition.fat}g
                     </div>
-                    <div className="text-sm text-gray-600">지방</div>
+                    <div className="text-xs text-gray-600">지방</div>
                   </div>
                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-1">
+                    <div className="text-2xl font-bold text-green-600 mb-1">
                       {displayRecipe.nutrition.carbohydrates}g
                     </div>
-                    <div className="text-sm text-gray-600">탄수화물</div>
+                    <div className="text-xs text-gray-600">탄수화물</div>
                   </div>
                 </div>
               </div>
 
-              {/* 영양소 비율 분석 */}
+              {/* 영양소 비율 */}
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-5 shadow-md border-2 border-purple-200">
                 <div className="text-base font-bold text-gray-800 mb-4 text-center">영양소 비율</div>
                 <div className="flex h-5 rounded-full overflow-hidden mb-3 shadow-inner">
