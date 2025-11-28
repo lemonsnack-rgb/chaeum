@@ -340,7 +340,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
               </h3>
 
               {/* 영양소 상세 */}
-              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
+              <div className="bg-white rounded-2xl p-5 shadow-md border-2 border-gray-200 mb-8">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 text-center">
                     <div className="text-3xl font-bold text-primary mb-1">
@@ -370,9 +370,9 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
               </div>
 
               {/* 영양소 비율 분석 */}
-              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                <div className="text-sm font-semibold text-gray-700 mb-3 text-center">영양소 비율</div>
-                <div className="flex h-4 rounded-full overflow-hidden mb-3">
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-5 shadow-md border-2 border-purple-200">
+                <div className="text-base font-bold text-gray-800 mb-4 text-center">영양소 비율</div>
+                <div className="flex h-5 rounded-full overflow-hidden mb-3 shadow-inner">
                   <div
                     className="bg-blue-500"
                     style={{ width: `${proteinPercent}%` }}
@@ -389,7 +389,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                     title={`탄수화물 ${carbPercent.toFixed(1)}%`}
                   ></div>
                 </div>
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-sm font-medium text-gray-700">
                   <span>단백질 {proteinPercent.toFixed(0)}%</span>
                   <span>지방 {fatPercent.toFixed(0)}%</span>
                   <span>탄수화물 {carbPercent.toFixed(0)}%</span>
