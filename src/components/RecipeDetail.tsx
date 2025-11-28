@@ -342,10 +342,9 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
               {/* 칼로리 */}
               <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 shadow-md border-2 border-orange-200 mb-5">
                 <div className="text-center">
-                  <div className="text-5xl font-bold text-primary mb-2">
-                    {displayRecipe.nutrition.calories}
+                  <div className="text-5xl font-bold text-primary">
+                    {displayRecipe.nutrition.calories} <span className="text-3xl">kcal</span>
                   </div>
-                  <div className="text-base font-semibold text-gray-700">칼로리 (kcal)</div>
                 </div>
               </div>
 
