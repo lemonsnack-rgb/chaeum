@@ -764,22 +764,67 @@ export async function searchRecipes(searchQuery: string): Promise<Recipe[]> {
 }
 /**
  * ID로 레시피 조회 (최근 본 레시피 기능용)
+ * generated_recipes와 user_recipes 테이블 모두 확인
  */
 export async function getRecipeById(recipeId: string): Promise<Recipe | null> {
   if (!supabase) {
     return null;
   }
 
-  const { data, error } = await supabase
+  // 먼저 generated_recipes 테이블 확인
+  const { data: generatedData, error: generatedError } = await supabase
     .from('generated_recipes')
     .select('*')
     .eq('id', recipeId)
     .maybeSingle();
 
-  if (error) {
-    console.error('Error fetching recipe by ID:', error);
+  if (generatedError) {
+    console.error('Error fetching from generated_recipes:', generatedError);
+  }
+
+  if (generatedData) {
+    return databaseToRecipe(generatedData);
+  }
+
+  // generated_recipes에 없으면 user_recipes 테이블 확인
+  const { data: userData, error: userError } = await supabase
+    .from('user_recipes')
+    .select('*')
+    .eq('id', recipeId)
+    .maybeSingle();
+
+  if (userError) {
+    console.error('Error fetching from user_recipes:', userError);
     return null;
   }
 
-  return data ? databaseToRecipe(data) : null;
+  // user_recipes의 데이터 구조가 다르므로 변환
+  if (userData) {
+    return {
+      id: userData.id,
+      title: userData.title,
+      description: userData.content?.description || '',
+      main_ingredients: userData.main_ingredients || [],
+      theme_tags: userData.theme_tags || [],
+      ingredients_detail: userData.content?.ingredients_detail || [],
+      instructions: userData.content?.instructions || [],
+      meta: {
+        difficulty: userData.difficulty,
+        cooking_time_min: userData.cooking_time_min,
+        calories_per_serving: userData.calories_per_serving,
+      },
+      nutrition: userData.content?.nutrition || {
+        calories: userData.calories_per_serving || 0,
+        protein: 0,
+        fat: 0,
+        carbohydrates: 0,
+      },
+      deep_info: userData.content?.deep_info || {},
+      cooking_time: userData.cooking_time_min || 30,
+      servings: userData.content?.servings || 2,
+      created_at: userData.created_at,
+    };
+  }
+
+  return null;
 }
