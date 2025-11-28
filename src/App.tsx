@@ -53,6 +53,7 @@ function App() {
   const [allergies, setAllergies] = useState<string[]>([]);
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(''); // 검색어 상태 추가
+  const [imageProcessing, setImageProcessing] = useState(false); // 이미지 처리 중 상태
   const {
     ingredients,
     loading,
@@ -353,7 +354,10 @@ function App() {
             <ServiceBanner onShowMore={() => setShowAboutModal(true)} />
 
             <section className="mb-6">
-              <CameraButton onIngredientsExtracted={handleIngredientsExtracted} />
+              <CameraButton
+                onIngredientsExtracted={handleIngredientsExtracted}
+                onProcessingChange={setImageProcessing}
+              />
             </section>
 
             <section className="mb-6">
@@ -660,6 +664,7 @@ function App() {
         />
       )}
       <LoadingModal isOpen={generatingRecipe} message="AI가 레시피를 찾고 있습니다..." />
+      <LoadingModal isOpen={imageProcessing} message="AI가 사진 속 재료를 분석하고 있어요..." />
     </>
   );
 }

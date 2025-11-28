@@ -84,7 +84,7 @@ export function IngredientInput({ onAdd, existingNames }: IngredientInputProps) 
           <select
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="w-24 px-2 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+            className="w-20 px-2 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
           >
             <option value="">수량</option>
             <optgroup label="개수">

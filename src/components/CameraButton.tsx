@@ -4,9 +4,10 @@ import { extractIngredientsFromImage } from '../lib/gemini';
 
 interface CameraButtonProps {
   onIngredientsExtracted: (ingredients: string[]) => void;
+  onProcessingChange?: (processing: boolean) => void;
 }
 
-export function CameraButton({ onIngredientsExtracted }: CameraButtonProps) {
+export function CameraButton({ onIngredientsExtracted, onProcessingChange }: CameraButtonProps) {
   const [processing, setProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -20,6 +21,7 @@ export function CameraButton({ onIngredientsExtracted }: CameraButtonProps) {
 
     try {
       setProcessing(true);
+      onProcessingChange?.(true);
       const ingredients = await extractIngredientsFromImage(file);
       onIngredientsExtracted(ingredients);
     } catch (error) {
@@ -27,6 +29,7 @@ export function CameraButton({ onIngredientsExtracted }: CameraButtonProps) {
       alert('이미지 처리 중 오류가 발생했습니다. Gemini API 키를 확인해주세요.');
     } finally {
       setProcessing(false);
+      onProcessingChange?.(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -55,7 +58,7 @@ export function CameraButton({ onIngredientsExtracted }: CameraButtonProps) {
               {processing ? '이미지 분석 중...' : '냉장고/영수증 촬영'}
             </h2>
             <p className="text-orange-100 text-sm">
-              {processing ? 'AI가 식재료를 찾고 있어요' : '사진 한 장으로 간편하게 등록!'}
+              {processing ? 'AI가 식재료를 찾고 있어요' : '냉장고/영수증 사진으로 재료를 자동 추가!'}
             </p>
           </div>
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
