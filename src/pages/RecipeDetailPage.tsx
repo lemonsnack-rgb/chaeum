@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { RecipeDetail } from '../components/RecipeDetail';
+import { Layout } from '../components/Layout';
 import { getRecipeById, Recipe, saveUserRecipe, unsaveUserRecipe } from '../lib/recipeService';
 import { getCurrentUser } from '../lib/authService';
+import { getRecentRecipeView } from '../lib/recipeViewService';
 import { Loader2 } from 'lucide-react';
 
 export function RecipeDetailPage() {
@@ -72,6 +74,23 @@ export function RecipeDetailPage() {
     }
   }
 
+  async function handleViewRecentRecipe() {
+    try {
+      const recentRecipeId = await getRecentRecipeView();
+      if (!recentRecipeId) {
+        if (window.confirm('최근 본 레시피가 없습니다.\n레시피 검색 페이지로 이동하시겠습니까?')) {
+          navigate('/?tab=search');
+        }
+        return;
+      }
+
+      navigate(`/recipe/${recentRecipeId}`);
+    } catch (error) {
+      console.error('Failed to load recent recipe:', error);
+      alert('레시피를 불러오는 중 오류가 발생했습니다.');
+    }
+  }
+
   function generateRecipeSchema(recipe: Recipe) {
     return {
       "@context": "https://schema.org",
@@ -95,18 +114,34 @@ export function RecipeDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-gray-600">레시피를 불러오는 중...</p>
+      <Layout
+        onSearchClick={() => navigate('/?tab=search')}
+        onRecentRecipeClick={handleViewRecentRecipe}
+        onLogoClick={() => navigate('/')}
+        showBottomNav={true}
+        activeTab="fridge"
+        onTabChange={(tab) => navigate(`/?tab=${tab}`)}
+      >
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-gray-600">레시피를 불러오는 중...</p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (error || !recipe) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
+      <Layout
+        onSearchClick={() => navigate('/?tab=search')}
+        onRecentRecipeClick={handleViewRecentRecipe}
+        onLogoClick={() => navigate('/')}
+        showBottomNav={true}
+        activeTab="fridge"
+        onTabChange={(tab) => navigate(`/?tab=${tab}`)}
+      >
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 text-center">
             <p className="text-red-600 mb-4">{error || '레시피를 찾을 수 없습니다.'}</p>
@@ -118,7 +153,7 @@ export function RecipeDetailPage() {
             </button>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -140,21 +175,25 @@ export function RecipeDetailPage() {
         __html: JSON.stringify(generateRecipeSchema(recipe))
       }} />
 
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
-        <div className="max-w-md mx-auto px-4 py-6">
-          <RecipeDetail
-            recipe={recipe}
-            onBack={() => navigate('/')}
-            userIngredients={[]}
-            onSaveUserRecipe={handleSave}
-            onQuickSave={handleSave}
-            onUnsave={handleUnsave}
-            isAuthenticated={isAuthenticated}
-            onShowAuthModal={() => {}}
-            onSearchClick={() => navigate('/?tab=search')}
-          />
-        </div>
-      </div>
+      <Layout
+        onSearchClick={() => navigate('/?tab=search')}
+        onRecentRecipeClick={handleViewRecentRecipe}
+        onLogoClick={() => navigate('/')}
+        showBottomNav={true}
+        activeTab="fridge"
+        onTabChange={(tab) => navigate(`/?tab=${tab}`)}
+      >
+        <RecipeDetail
+          recipe={recipe}
+          onBack={() => navigate('/')}
+          userIngredients={[]}
+          onSaveUserRecipe={handleSave}
+          onQuickSave={handleSave}
+          onUnsave={handleUnsave}
+          isAuthenticated={isAuthenticated}
+          onShowAuthModal={() => {}}
+        />
+      </Layout>
     </>
   );
 }

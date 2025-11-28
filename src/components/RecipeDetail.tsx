@@ -131,47 +131,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
   const displayRecipe = isEditing ? editedRecipe : recipe;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-8">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          {/* 로고 */}
-          <div className="flex items-center gap-2">
-            <ChefHat className="w-7 h-7 text-primary" />
-            <h1 className="text-xl font-bold text-gray-900">오늘의냉장고</h1>
-          </div>
-
-          {/* 우측 아이콘들 */}
-          <div className="flex items-center gap-2">
-            {onSearchClick && (
-              <button
-                onClick={onSearchClick}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="검색"
-              >
-                <Search className="w-6 h-6 text-gray-700" />
-              </button>
-            )}
-
-            {onQuickSave && (
-              <button
-                onClick={handleQuickSave}
-                disabled={isSaving}
-                className={`flex items-center gap-1 px-3 py-2 rounded-full transition-colors disabled:opacity-50 ${
-                  isBookmarked
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-white text-red-500 border-2 border-red-500 hover:bg-red-50'
-                }`}
-                aria-label={isBookmarked ? '저장됨' : '저장'}
-              >
-                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                <span className="text-sm font-semibold">{isBookmarked ? '저장됨' : '저장'}</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-md mx-auto px-4 py-6 pb-20">
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6">
           <div className="bg-gradient-to-br from-primary to-primary-dark p-6">
             {isEditing ? (
@@ -453,15 +413,31 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
           </div>
         </div>
 
-        {/* 댓글 섹션 */}
-        {recipe.id && (
-          <CommentSection
-            recipeId={recipe.id}
-            isAuthenticated={isAuthenticated}
-            onLoginRequired={() => onShowAuthModal?.()}
-          />
-        )}
-      </main>
+      {/* 댓글 섹션 */}
+      {recipe.id && (
+        <CommentSection
+          recipeId={recipe.id}
+          isAuthenticated={isAuthenticated}
+          onLoginRequired={() => onShowAuthModal?.()}
+        />
+      )}
+
+      {/* Floating 저장 버튼 */}
+      {onQuickSave && (
+        <button
+          onClick={handleQuickSave}
+          disabled={isSaving}
+          className={`fixed bottom-20 right-4 md:right-auto md:left-[calc(50%+220px)] flex items-center gap-2 px-6 py-3 rounded-full shadow-lg transition-all disabled:opacity-50 z-50 ${
+            isBookmarked
+              ? 'bg-red-500 text-white hover:bg-red-600 hover:shadow-xl'
+              : 'bg-white text-red-500 border-2 border-red-500 hover:bg-red-50 hover:shadow-xl'
+          }`}
+          aria-label={isBookmarked ? '저장됨' : '저장'}
+        >
+          <Heart className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+          <span className="font-semibold">{isBookmarked ? '저장됨' : '저장'}</span>
+        </button>
+      )}
 
       {showConsentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

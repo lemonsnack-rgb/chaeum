@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils, Clock } from 'lucide-react';
+import { ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
 import { CameraButton } from './components/CameraButton';
 import { IngredientInput } from './components/IngredientInput';
@@ -16,6 +16,8 @@ import { AllergyManager } from './components/AllergyManager';
 import { Footer } from './components/Footer';
 import { AboutModal } from './components/AboutModal';
 import { ServiceBanner } from './components/ServiceBanner';
+import { Layout } from './components/Layout';
+import { Tab } from './components/BottomNav';
 import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
 import { signOut, getCurrentUser, getMyBookmarkedRecipes } from './lib/authService';
 import { supabase } from './lib/supabase';
@@ -31,7 +33,6 @@ import {
   getUserProfile
 } from './lib/profileService';
 
-type Tab = 'fridge' | 'search' | 'my-recipes' | 'profile';
 type MyRecipesSubTab = 'recommended' | 'saved';
 
 function App() {
@@ -335,44 +336,14 @@ function App() {
         <meta name="twitter:image" content="https://www.oneulfridge.com/og-image.png" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
-        <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => setActiveTab('fridge')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
-          >
-            <ChefHat className="w-7 h-7 text-primary" />
-            <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">오늘의냉장고</h1>
-          </button>
-
-          {/* 검색창 - 클릭 시 검색 탭으로 이동 */}
-          <div
-            onClick={() => setActiveTab('search')}
-            className="flex-1 cursor-pointer"
-          >
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="레시피 검색..."
-                readOnly
-                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 rounded-full border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={handleViewRecentRecipe}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-            aria-label="최근 본 레시피"
-          >
-            <Clock className="w-6 h-6 text-gray-700" />
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-md mx-auto px-4 py-6">
+      <Layout
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onSearchClick={() => setActiveTab('search')}
+        onRecentRecipeClick={handleViewRecentRecipe}
+        onLogoClick={() => setActiveTab('fridge')}
+      >
+      <div className="max-w-md mx-auto px-4 py-6">
         {activeTab === 'fridge' && (
           <>
             {/* 서비스 소개 배너 */}
@@ -664,53 +635,11 @@ function App() {
             )}
           </div>
         )}
-      </main>
-
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-md mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-around">
-            <button
-              onClick={() => setActiveTab('fridge')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
-                activeTab === 'fridge' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <RefrigeratorIcon className="w-5 h-5" />
-              <span className="text-xs font-medium">냉장고</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('search')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
-                activeTab === 'search' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <Search className="w-5 h-5" />
-              <span className="text-xs font-medium">레시피 검색</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('my-recipes')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
-                activeTab === 'my-recipes' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <ChefHat className="w-5 h-5" />
-              <span className="text-xs font-medium">내 레시피</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
-                activeTab === 'profile' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <User className="w-5 h-5" />
-              <span className="text-xs font-medium">내 정보</span>
-            </button>
-          </div>
-        </div>
-      </nav>
+      </div>
 
       {/* 푸터 */}
       <Footer onShowAbout={() => setShowAboutModal(true)} />
+      </Layout>
 
       {/* 모달들 */}
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
@@ -727,7 +656,6 @@ function App() {
         />
       )}
       <LoadingModal isOpen={generatingRecipe} message="AI가 레시피를 찾고 있습니다..." />
-      </div>
     </>
   );
 }
