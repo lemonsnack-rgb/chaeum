@@ -168,7 +168,7 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
           <button
             type="submit"
             disabled={!newComment.trim() || submitting}
-            className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5" />
           </button>

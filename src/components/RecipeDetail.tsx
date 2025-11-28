@@ -1,4 +1,4 @@
-import { Clock, Users, ChefHat, ArrowLeft, AlertCircle, ExternalLink, Edit, Save, Heart } from 'lucide-react';
+import { Clock, Users, ChefHat, AlertCircle, ExternalLink, Heart, Search } from 'lucide-react';
 import { Recipe } from '../lib/recipeService';
 import { useState, useEffect } from 'react';
 import { trackRecipeView } from '../lib/recipeViewService';
@@ -132,52 +132,36 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-8">
       <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6 text-gray-700" />
-          </button>
-          <div className="flex items-center gap-2 flex-1">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+          {/* 로고 */}
+          <div className="flex items-center gap-2">
             <ChefHat className="w-7 h-7 text-primary" />
-            <h1 className="text-xl font-bold text-gray-900">레시피 상세</h1>
+            <h1 className="text-xl font-bold text-gray-900">오늘의냉장고</h1>
           </div>
-          <div className="flex gap-2">
-            {isReadOnly && onQuickSave && (
+
+          {/* 우측 아이콘들 */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {/* TODO: 검색 기능 */}}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="검색"
+            >
+              <Search className="w-6 h-6 text-gray-700" />
+            </button>
+
+            {onQuickSave && (
               <button
                 onClick={handleQuickSave}
                 disabled={isSaving}
-                className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors disabled:opacity-50 ${
+                className={`flex items-center gap-1 px-3 py-2 rounded-full transition-colors disabled:opacity-50 ${
                   isBookmarked
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : 'bg-white text-red-500 border-2 border-red-500 hover:bg-red-50'
                 }`}
-              >
-                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                <span className="text-sm font-semibold">{isBookmarked ? '저장됨' : '내 레시피로 저장'}</span>
-              </button>
-            )}
-            {!isReadOnly && onQuickSave && !isEditing && (
-              <button
-                onClick={handleQuickSave}
-                disabled={isSaving}
-                className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors disabled:opacity-50 ${
-                  isBookmarked
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-white text-red-500 border-2 border-red-500 hover:bg-red-50'
-                }`}
+                aria-label={isBookmarked ? '저장됨' : '저장'}
               >
                 <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 <span className="text-sm font-semibold">{isBookmarked ? '저장됨' : '저장'}</span>
-              </button>
-            )}
-            {!isReadOnly && onSaveUserRecipe && (
-              <button
-                onClick={handleSaveClick}
-                className="p-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
-              >
-                {isEditing ? <Save className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
               </button>
             )}
           </div>
