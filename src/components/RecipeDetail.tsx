@@ -338,58 +338,61 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                 <span className="w-2 h-6 bg-primary rounded-full"></span>
                 영양 정보 (1인분)
               </h3>
-              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-5">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white rounded-xl p-4 text-center">
+
+              {/* 영양소 상세 */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 text-center">
                     <div className="text-3xl font-bold text-primary mb-1">
                       {displayRecipe.nutrition.calories}
                     </div>
                     <div className="text-sm text-gray-600">칼로리 (kcal)</div>
                   </div>
-                  <div className="bg-white rounded-xl p-4 text-center">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
                     <div className="text-3xl font-bold text-blue-600 mb-1">
                       {displayRecipe.nutrition.protein}g
                     </div>
                     <div className="text-sm text-gray-600">단백질</div>
                   </div>
-                  <div className="bg-white rounded-xl p-4 text-center">
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 text-center">
                     <div className="text-3xl font-bold text-red-600 mb-1">
                       {displayRecipe.nutrition.fat}g
                     </div>
                     <div className="text-sm text-gray-600">지방</div>
                   </div>
-                  <div className="bg-white rounded-xl p-4 text-center">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center">
                     <div className="text-3xl font-bold text-green-600 mb-1">
                       {displayRecipe.nutrition.carbohydrates}g
                     </div>
                     <div className="text-sm text-gray-600">탄수화물</div>
                   </div>
                 </div>
+              </div>
 
-                <div className="bg-white rounded-xl p-4">
-                  <div className="text-sm text-gray-600 mb-2 text-center">영양소 비율</div>
-                  <div className="flex h-4 rounded-full overflow-hidden">
-                    <div
-                      className="bg-blue-500"
-                      style={{ width: `${proteinPercent}%` }}
-                      title={`단백질 ${proteinPercent.toFixed(1)}%`}
-                    ></div>
-                    <div
-                      className="bg-red-500"
-                      style={{ width: `${fatPercent}%` }}
-                      title={`지방 ${fatPercent.toFixed(1)}%`}
-                    ></div>
-                    <div
-                      className="bg-green-500"
-                      style={{ width: `${carbPercent}%` }}
-                      title={`탄수화물 ${carbPercent.toFixed(1)}%`}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-gray-600">
-                    <span>단백질 {proteinPercent.toFixed(0)}%</span>
-                    <span>지방 {fatPercent.toFixed(0)}%</span>
-                    <span>탄수화물 {carbPercent.toFixed(0)}%</span>
-                  </div>
+              {/* 영양소 비율 분석 */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <div className="text-sm font-semibold text-gray-700 mb-3 text-center">영양소 비율</div>
+                <div className="flex h-4 rounded-full overflow-hidden mb-3">
+                  <div
+                    className="bg-blue-500"
+                    style={{ width: `${proteinPercent}%` }}
+                    title={`단백질 ${proteinPercent.toFixed(1)}%`}
+                  ></div>
+                  <div
+                    className="bg-red-500"
+                    style={{ width: `${fatPercent}%` }}
+                    title={`지방 ${fatPercent.toFixed(1)}%`}
+                  ></div>
+                  <div
+                    className="bg-green-500"
+                    style={{ width: `${carbPercent}%` }}
+                    title={`탄수화물 ${carbPercent.toFixed(1)}%`}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>단백질 {proteinPercent.toFixed(0)}%</span>
+                  <span>지방 {fatPercent.toFixed(0)}%</span>
+                  <span>탄수화물 {carbPercent.toFixed(0)}%</span>
                 </div>
               </div>
             </section>
