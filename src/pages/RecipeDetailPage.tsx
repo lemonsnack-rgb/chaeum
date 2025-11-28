@@ -151,6 +151,7 @@ export function RecipeDetailPage() {
             onUnsave={handleUnsave}
             isAuthenticated={isAuthenticated}
             onShowAuthModal={() => {}}
+            onSearchClick={() => navigate('/?tab=search')}
           />
         </div>
       </div>

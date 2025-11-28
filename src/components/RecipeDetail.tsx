@@ -15,9 +15,10 @@ interface RecipeDetailProps {
   isReadOnly?: boolean;
   isAuthenticated?: boolean;
   onShowAuthModal?: () => void;
+  onSearchClick?: () => void;
 }
 
-export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal, onSearchClick }: RecipeDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecipe, setEditedRecipe] = useState(recipe);
   const [safetyConsent, setSafetyConsent] = useState(false);
@@ -141,13 +142,15 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
 
           {/* 우측 아이콘들 */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {/* TODO: 검색 기능 */}}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="검색"
-            >
-              <Search className="w-6 h-6 text-gray-700" />
-            </button>
+            {onSearchClick && (
+              <button
+                onClick={onSearchClick}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="검색"
+              >
+                <Search className="w-6 h-6 text-gray-700" />
+              </button>
+            )}
 
             {onQuickSave && (
               <button

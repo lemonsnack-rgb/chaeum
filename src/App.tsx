@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { RefrigeratorIcon, Search, ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils, Clock } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
@@ -36,6 +36,7 @@ type MyRecipesSubTab = 'recommended' | 'saved';
 
 function App() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>('fridge');
   const [myRecipesSubTab, setMyRecipesSubTab] = useState<MyRecipesSubTab>('recommended');
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
@@ -81,6 +82,14 @@ function App() {
       alert('식재료 추가 중 오류가 발생했습니다.');
     }
   };
+
+  // URL 쿼리 파라미터로 탭 전환
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'search') {
+      setActiveTab('search');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     checkAuth();
@@ -328,30 +337,38 @@ function App() {
 
       <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
         <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => setActiveTab('fridge')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
           >
             <ChefHat className="w-7 h-7 text-primary" />
-            <h1 className="text-xl font-bold text-gray-900">오늘의냉장고</h1>
+            <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">오늘의냉장고</h1>
           </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {/* TODO: 검색 기능 */}}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="검색"
-            >
-              <Search className="w-6 h-6 text-gray-700" />
-            </button>
-            <button
-              onClick={handleViewRecentRecipe}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="최근 본 레시피"
-            >
-              <Clock className="w-6 h-6 text-gray-700" />
-            </button>
+
+          {/* 검색창 - 클릭 시 검색 탭으로 이동 */}
+          <div
+            onClick={() => setActiveTab('search')}
+            className="flex-1 cursor-pointer"
+          >
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="레시피 검색..."
+                readOnly
+                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 rounded-full border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+              />
+            </div>
           </div>
+
+          <button
+            onClick={handleViewRecentRecipe}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+            aria-label="최근 본 레시피"
+          >
+            <Clock className="w-6 h-6 text-gray-700" />
+          </button>
         </div>
       </header>
 
