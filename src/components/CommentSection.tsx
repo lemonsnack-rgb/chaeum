@@ -156,14 +156,14 @@ export function CommentSection({ recipeId, isAuthenticated, onLoginRequired }: C
             />
           </div>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <input
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="댓글을 입력하세요"
             disabled={submitting}
-            className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none disabled:bg-gray-100"
+            className="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none disabled:bg-gray-100"
           />
           <button
             type="submit"
