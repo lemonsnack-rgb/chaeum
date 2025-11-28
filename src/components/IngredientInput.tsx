@@ -84,7 +84,7 @@ export function IngredientInput({ onAdd, existingNames }: IngredientInputProps) 
           <select
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="w-28 px-3 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+            className="w-24 px-2 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
           >
             <option value="">수량</option>
             <optgroup label="개수">
@@ -95,7 +95,7 @@ export function IngredientInput({ onAdd, existingNames }: IngredientInputProps) 
               <option value="5개">5개</option>
             </optgroup>
             <optgroup label="중량">
-              <option value="주먹만큼">주멱만큼</option>
+              <option value="주먹만큼">주먹만큼</option>
               <option value="손바닥만큼">손바닥만큼</option>
               <option value="100g">약 100g</option>
               <option value="200g">약 200g</option>
@@ -111,7 +111,7 @@ export function IngredientInput({ onAdd, existingNames }: IngredientInputProps) 
 
           <button
             type="submit"
-            className="px-5 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+            className="px-4 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
           >
             <Plus className="w-5 h-5" />
           </button>

@@ -47,22 +47,22 @@ export function CameraButton({ onIngredientsExtracted }: CameraButtonProps) {
       <button
         onClick={handleClick}
         disabled={processing}
-        className="w-full bg-gradient-to-br from-primary to-primary-dark rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-gradient-to-br from-primary to-primary-dark rounded-3xl p-5 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div className="flex items-center justify-between">
           <div className="text-left">
-            <h2 className="text-white text-2xl font-bold mb-2">
+            <h2 className="text-white text-xl font-bold mb-1">
               {processing ? '이미지 분석 중...' : '냉장고/영수증 촬영'}
             </h2>
             <p className="text-orange-100 text-sm">
               {processing ? 'AI가 식재료를 찾고 있어요' : '사진 한 장으로 간편하게 등록!'}
             </p>
           </div>
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
             {processing ? (
-              <Loader2 className="w-10 h-10 text-white animate-spin" />
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
             ) : (
-              <Camera className="w-10 h-10 text-white" />
+              <Camera className="w-8 h-8 text-white" />
             )}
           </div>
         </div>
