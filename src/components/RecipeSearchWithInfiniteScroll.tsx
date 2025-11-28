@@ -6,13 +6,14 @@ import { RecipeList } from './RecipeList';
 interface RecipeSearchWithInfiniteScrollProps {
   onRecipeClick: (recipe: Recipe) => void;
   userIngredients?: string[];
+  searchQuery: string; // 외부에서 검색어를 받음
 }
 
 export function RecipeSearchWithInfiniteScroll({
   onRecipeClick,
-  userIngredients = []
+  userIngredients = [],
+  searchQuery
 }: RecipeSearchWithInfiniteScrollProps) {
-  const [searchQuery, setSearchQuery] = useState('');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -20,32 +21,18 @@ export function RecipeSearchWithInfiniteScroll({
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const observerTarget = useRef<HTMLDivElement>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // 초기 로드
   useEffect(() => {
     loadRecipes(0, '');
   }, []);
 
-  // 검색어 변경 시 디바운스 적용
+  // 검색어 변경 시 처음부터 다시 로드
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      // 검색어가 변경되면 처음부터 다시 로드
-      setPage(0);
-      setRecipes([]);
-      setHasMore(true);
-      loadRecipes(0, searchQuery);
-    }, 300);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
+    setPage(0);
+    setRecipes([]);
+    setHasMore(true);
+    loadRecipes(0, searchQuery);
   }, [searchQuery]);
 
   // Intersection Observer 설정
@@ -99,18 +86,6 @@ export function RecipeSearchWithInfiniteScroll({
 
   return (
     <div className="space-y-4">
-      {/* 검색창 */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="레시피 검색..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-primary focus:outline-none"
-        />
-      </div>
-
       {/* 레시피 리스트 */}
       {isInitialLoad && loading ? (
         <div className="flex justify-center items-center py-12">

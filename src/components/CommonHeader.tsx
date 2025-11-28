@@ -1,13 +1,24 @@
 import { ChefHat, Search, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { RefObject } from 'react';
 
 interface CommonHeaderProps {
   onSearchClick?: () => void;
   onRecentRecipeClick?: () => void;
   onLogoClick?: () => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  searchInputRef?: RefObject<HTMLInputElement>;
 }
 
-export function CommonHeader({ onSearchClick, onRecentRecipeClick, onLogoClick }: CommonHeaderProps) {
+export function CommonHeader({
+  onSearchClick,
+  onRecentRecipeClick,
+  onLogoClick,
+  searchQuery = '',
+  onSearchChange,
+  searchInputRef
+}: CommonHeaderProps) {
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
@@ -30,6 +41,12 @@ export function CommonHeader({ onSearchClick, onRecentRecipeClick, onLogoClick }
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onSearchChange) {
+      onSearchChange(e.target.value);
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-3">
@@ -41,19 +58,19 @@ export function CommonHeader({ onSearchClick, onRecentRecipeClick, onLogoClick }
           <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">오늘의냉장고</h1>
         </button>
 
-        {/* 검색창 - 클릭 시 검색 탭으로 이동 */}
+        {/* 검색창 - 입력 가능, 클릭 시 검색 탭으로 이동 */}
         {onSearchClick && (
-          <div
-            onClick={handleSearchClick}
-            className="flex-1 cursor-pointer"
-          >
+          <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="레시피 검색..."
-                readOnly
-                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 rounded-full border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onClick={handleSearchClick}
+                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 rounded-full border border-gray-200 focus:bg-white focus:border-primary focus:outline-none transition-colors"
               />
             </div>
           </div>

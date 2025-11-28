@@ -52,6 +52,7 @@ function App() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState(''); // 검색어 상태 추가
   const {
     ingredients,
     loading,
@@ -342,6 +343,8 @@ function App() {
         onSearchClick={() => setActiveTab('search')}
         onRecentRecipeClick={handleViewRecentRecipe}
         onLogoClick={() => setActiveTab('fridge')}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       >
       <div className="max-w-md mx-auto px-4 py-6">
         {activeTab === 'fridge' && (
@@ -417,6 +420,7 @@ function App() {
           <RecipeSearchWithInfiniteScroll
             onRecipeClick={handleRecipeClick}
             userIngredients={ingredients.map((ing) => ing.name)}
+            searchQuery={searchQuery}
           />
         )}
 

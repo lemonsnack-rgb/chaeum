@@ -17,7 +17,19 @@
       "Bash(if exist \".git\\packed-refs.lock\" del \".git\\packed-refs.lock\")",
       "Bash(git restore:*)",
       "Bash(if exist \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\.git\\packed-refs.lock\" del \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\.git\\packed-refs.lock\")",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(nslookup:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(cat:*)",
+      "Bash(if exist \"src\\pages\\SearchPage.tsx\" del \"src\\pages\\SearchPage.tsx\")",
+      "Bash(if [ -f \"src/pages/SearchPage.tsx\" ])",
+      "Bash(then rm \"src/pages/SearchPage.tsx\")",
+      "Bash(else echo \"SearchPage.tsx does not exist\")",
+      "Bash(fi)",
+      "Bash(if curl -s -o /dev/null -w %{http_code} https://oneulfridge.com)",
+      "Bash(then echo \"✅ 배포 완료! 사이트가 정상적으로 응답합니다.\")"
     ],
     "deny": [],
     "ask": []

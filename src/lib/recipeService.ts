@@ -803,25 +803,25 @@ export async function getRecipeById(recipeId: string): Promise<Recipe | null> {
     return {
       id: userData.id,
       title: userData.title,
-      description: userData.content?.description || '',
+      description: userData.description || '',
       main_ingredients: userData.main_ingredients || [],
       theme_tags: userData.theme_tags || [],
-      ingredients_detail: userData.content?.ingredients_detail || [],
-      instructions: userData.content?.instructions || [],
+      ingredients_detail: userData.ingredients_detail || [],
+      instructions: userData.instructions || [],
       meta: {
         difficulty: userData.difficulty,
         cooking_time_min: userData.cooking_time_min,
         calories_per_serving: userData.calories_per_serving,
       },
-      nutrition: userData.content?.nutrition || {
+      nutrition: userData.nutrition || {
         calories: userData.calories_per_serving || 0,
         protein: 0,
         fat: 0,
         carbohydrates: 0,
       },
-      deep_info: userData.content?.deep_info || {},
-      cooking_time: userData.cooking_time_min || 30,
-      servings: userData.content?.servings || 2,
+      deep_info: userData.deep_info || {},
+      cooking_time: userData.cooking_time_min || userData.cooking_time || 30,
+      servings: userData.servings || 2,
       created_at: userData.created_at,
     };
   }
