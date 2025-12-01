@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { randomUUID } from 'crypto';
 import { selectRandomIngredient, INGREDIENT_DATABASE } from './ingredient-database';
 import { generateRecipePrompt } from '../src/ai/recipe_generation_prompt';
 
@@ -197,7 +198,7 @@ async function generateRecipe() {
     }
 
     const newRecipe: Recipe = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       title: recipeData.title || 'Untitled Recipe',
       description: recipeData.description || '',
       main_ingredients: Array.isArray(recipeData.main_ingredients)
