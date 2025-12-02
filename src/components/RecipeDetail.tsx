@@ -217,7 +217,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                                   )}
                                   {isMissing && (
                                     <a
-                                      href={`https://link.coupang.com/a/AF8562976?lptag=AF8562976&subId=${encodeURIComponent(ingredient.name)}&itemId=&vendorItemId=&q=${encodeURIComponent(ingredient.name)}`}
+                                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient.name)}&channel=user&component=&eventCategory=SRP&trcid=AF8562976&sorter=scoreDesc`}
                                       target="_blank"
                                       rel="noopener noreferrer nofollow"
                                       className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
@@ -258,7 +258,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                                   )}
                                   {isMissing && (
                                     <a
-                                      href={`https://link.coupang.com/a/AF8562976?lptag=AF8562976&subId=${encodeURIComponent(ingredient.name)}&itemId=&vendorItemId=&q=${encodeURIComponent(ingredient.name)}`}
+                                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient.name)}&channel=user&component=&eventCategory=SRP&trcid=AF8562976&sorter=scoreDesc`}
                                       target="_blank"
                                       rel="noopener noreferrer nofollow"
                                       className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
@@ -293,7 +293,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                                   </span>
                                   {isMissing && (
                                     <a
-                                      href={`https://link.coupang.com/a/AF8562976?lptag=AF8562976&subId=${encodeURIComponent(ingredient.name)}&itemId=&vendorItemId=&q=${encodeURIComponent(ingredient.name)}`}
+                                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient.name)}&channel=user&component=&eventCategory=SRP&trcid=AF8562976&sorter=scoreDesc`}
                                       target="_blank"
                                       rel="noopener noreferrer nofollow"
                                       className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
