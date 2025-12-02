@@ -125,18 +125,6 @@ export function RecipeSearchWithInfiniteScroll({
         onKeywordClick={handleKeywordClick}
       />
 
-      {/* 검색 결과 개수 */}
-      {!isInitialLoad && recipes.length > 0 && (
-        <div className="px-2">
-          <p className="text-sm text-gray-600">
-            검색 결과: <span className="font-semibold text-primary">{recipes.length}개</span>
-            {effectiveSearchQuery && (
-              <span className="text-gray-500"> · &quot;{effectiveSearchQuery}&quot;</span>
-            )}
-          </p>
-        </div>
-      )}
-
       {/* 레시피 리스트 */}
       {isInitialLoad && loading ? (
         <div className="flex justify-center items-center py-12">

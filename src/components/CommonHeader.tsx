@@ -1,4 +1,4 @@
-import { ChefHat, Search, Clock } from 'lucide-react';
+import { Refrigerator, Search, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { RefObject } from 'react';
 
@@ -54,8 +54,10 @@ export function CommonHeader({
           onClick={handleLogoClick}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
         >
-          <ChefHat className="w-7 h-7 text-primary" />
-          <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">오늘의냉장고</h1>
+          <Refrigerator className="w-7 h-7 text-primary" />
+          <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">
+            <span className="text-primary">오</span>늘의<span className="text-primary">냉</span>장고
+          </h1>
         </button>
 
         {/* 검색창 - 입력 가능, 클릭 시 검색 탭으로 이동 */}
