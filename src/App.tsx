@@ -756,8 +756,18 @@ function App() {
           onClose={() => setShowAboutModal(false)}
         />
       )}
-      <LoadingModal isOpen={generatingRecipe} message="AI가 레시피를 찾고 있습니다..." />
-      <LoadingModal isOpen={imageProcessing} message="AI가 사진 속 재료를 분석하고 있어요..." />
+      <LoadingModal
+        isOpen={generatingRecipe}
+        title="레시피 찾는 중"
+        message="AI가 레시피를 찾고 있습니다..."
+        showSteps={true}
+      />
+      <LoadingModal
+        isOpen={imageProcessing}
+        title="재료 분석 중"
+        message="AI가 사진 속 재료를 분석하고 있어요..."
+        showSteps={false}
+      />
     </>
   );
 }
