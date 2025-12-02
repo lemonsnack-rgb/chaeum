@@ -176,9 +176,12 @@ export function RecipeDetailPage() {
 
   function generateRecipeSchema(recipe: Recipe) {
     // ISO 8601 시간 형식 생성 (예: PT30M = 30분)
-    const cookTimeISO = recipe.cooking_time ? `PT${recipe.cooking_time}M` : 'PT30M';
-    const prepTimeISO = 'PT15M'; // 준비 시간 기본값 15분
-    const totalTimeISO = recipe.cooking_time ? `PT${recipe.cooking_time + 15}M` : 'PT45M';
+    // recipe.cooking_time은 총 조리 시간(준비+조리)이므로 totalTime으로 사용
+    const totalTimeValue = recipe.cooking_time || 30;
+    const totalTimeISO = `PT${totalTimeValue}M`;
+
+    // totalTime만 제공 (준비/조리 시간 구분이 명확하지 않으므로)
+    // Google은 totalTime만 있어도 Rich Results에 표시함
 
     return {
       "@context": "https://schema.org",
@@ -186,9 +189,7 @@ export function RecipeDetailPage() {
       "name": recipe.title || "레시피",
       "description": recipe.description || `${recipe.title || '레시피'}입니다. ${recipe.main_ingredients?.join(', ') || ''}로 만드는 건강한 요리입니다.`,
 
-      // ⭐ 조리 시간 (SEO 핵심)
-      "prepTime": prepTimeISO,
-      "cookTime": cookTimeISO,
+      // ⭐ 조리 시간 (SEO 핵심) - totalTime만 제공하여 정확한 시간 표시
       "totalTime": totalTimeISO,
 
       // ⭐ 이미지 (현재는 기본 이미지, 추후 AI 생성 이미지로 교체 가능)
@@ -260,7 +261,7 @@ export function RecipeDetailPage() {
           "name": `${recipe.title} 조리 시간은 얼마나 걸리나요?`,
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": `${recipe.title}의 조리 시간은 약 ${recipe.cooking_time || 30}분입니다. 준비 시간을 포함하면 총 ${(recipe.cooking_time || 30) + 15}분 정도 소요됩니다.`
+            "text": `${recipe.title}의 총 조리 시간은 약 ${recipe.cooking_time || 30}분입니다 (재료 준비부터 완성까지).`
           }
         },
         {
