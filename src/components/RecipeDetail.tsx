@@ -363,7 +363,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], similarReci
                 >
                   <img
                     src="https://ads-partners.coupang.com/banners/947280?subId=&traceId=V0-301-371ae01f4226dec2-I947280&w=320&h=100"
-                    alt="쿠팡 파트너스 배너"
+                    alt="쿠팡에서 신선한 식재료와 조리 도구 구매하기 - 요리 재료 빠른 배송"
                     className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
                   />
                 </a>

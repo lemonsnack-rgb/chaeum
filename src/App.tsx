@@ -406,16 +406,58 @@ function App() {
   return (
     <>
       <Helmet>
-        <title>건강하게 채우고, 맛있게 비우다 - 오늘의냉장고</title>
-        <meta name="description" content="AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천합니다. 음식에 관한 정보를 나누고 맛있는 일상을 이어가세요." />
-        <meta property="og:title" content="오늘의냉장고" />
-        <meta property="og:description" content="AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천합니다" />
-        <meta property="og:image" content="https://www.oneulfridge.com/og-image.png" />
-        <meta property="og:url" content="https://www.oneulfridge.com" />
+        {/* 기본 메타태그 */}
+        <title>오늘의냉장고 - AI 맞춤 레시피 추천 | 냉장고 재료로 요리 찾기</title>
+        <meta name="description" content="냉장고 재료로 만들 수 있는 레시피를 AI가 추천! 남은 재료 요리, 간편식 레시피, 건강 요리법을 찾아보세요. 사진 촬영만으로 재료 자동 인식, 무료 레시피 검색 서비스." />
+        <meta name="keywords" content="레시피 추천, 냉장고 재료 요리, AI 레시피, 남은 재료 요리, 간편 요리, 건강 레시피, 맞춤 요리법, 재료 검색, 레시피 검색, 요리법" />
+        <meta name="author" content="오늘의냉장고" />
+        <link rel="canonical" href="https://oneulfridge.com" />
+
+        {/* Open Graph (Facebook, KakaoTalk) */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="오늘의냉장고" />
+        <meta property="og:title" content="오늘의냉장고 - AI 맞춤 레시피 추천" />
+        <meta property="og:description" content="냉장고 재료로 만들 수 있는 레시피를 AI가 추천! 남은 재료로 간편하게 요리하세요." />
+        <meta property="og:image" content="https://oneulfridge.com/og-image.png" />
+        <meta property="og:url" content="https://oneulfridge.com" />
+        <meta property="og:locale" content="ko_KR" />
+
+        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="오늘의냉장고" />
-        <meta name="twitter:description" content="AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천합니다" />
-        <meta name="twitter:image" content="https://www.oneulfridge.com/og-image.png" />
+        <meta name="twitter:title" content="오늘의냉장고 - AI 맞춤 레시피 추천" />
+        <meta name="twitter:description" content="냉장고 재료로 만들 수 있는 레시피를 AI가 추천! 남은 재료로 간편하게 요리하세요." />
+        <meta name="twitter:image" content="https://oneulfridge.com/og-image.png" />
+
+        {/* 구조화 데이터 (Schema.org) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "오늘의냉장고",
+            "alternateName": "oneulfridge",
+            "url": "https://oneulfridge.com",
+            "description": "AI 기반 냉장고 재료 맞춤 레시피 추천 서비스",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://oneulfridge.com?tab=search&q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "오늘의냉장고",
+            "url": "https://oneulfridge.com",
+            "logo": "https://oneulfridge.com/logo.png",
+            "sameAs": [],
+            "description": "AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천하는 서비스"
+          })}
+        </script>
       </Helmet>
 
       <Layout
