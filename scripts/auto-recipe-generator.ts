@@ -149,7 +149,7 @@ async function generateRecipe() {
     const themePreference = '';
     const allergies: string[] = [];
     const dietaryPreferences: string[] = [];
-    const recipesToGenerate = 1; // 한 번에 1개씩 생성
+    const recipesToGenerate = 3; // 한 번에 3개씩 생성 (원하는 만큼 조정 가능: 1, 3, 5 등)
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
@@ -190,95 +190,108 @@ async function generateRecipe() {
 
     console.log(`✅ ${recipesData.length}개의 레시피 파싱 완료`);
 
-    // Step 4: Recipe 객체 생성 (기존 로직과 동일)
-    const recipeData = recipesData[0]; // 첫 번째 레시피만 사용
+    // Step 4: 모든 레시피 순회하며 저장
+    let successCount = 0;
+    let skipCount = 0;
 
-    if (!recipeData.title || !recipeData.main_ingredients) {
-      throw new Error('Recipe missing required fields');
-    }
+    for (let i = 0; i < recipesData.length; i++) {
+      const recipeData = recipesData[i];
+      console.log(`\n━━━ [${i + 1}/${recipesData.length}] 레시피 처리 중 ━━━`);
 
-    const newRecipe: Recipe = {
-      id: randomUUID(),
-      title: recipeData.title || 'Untitled Recipe',
-      description: recipeData.description || '',
-      main_ingredients: Array.isArray(recipeData.main_ingredients)
-        ? recipeData.main_ingredients
-        : sortedIngredients,
-      theme_tags: Array.isArray(recipeData.theme_tags) ? recipeData.theme_tags : [],
-      ingredients_detail: Array.isArray(recipeData.ingredients)
-        ? recipeData.ingredients
-        : [],
-      instructions: Array.isArray(recipeData.steps)
-        ? recipeData.steps.map((s: any) =>
-            `${s.step_no}. ${s.action}${s.tip ? ' (팁: ' + s.tip + ')' : ''}`
-          )
-        : [],
-      meta: recipeData.meta || {},
-      nutrition: {
-        calories: recipeData.meta?.calories_per_serving || 0,
-        protein: recipeData.meta?.protein || 0,
-        fat: recipeData.meta?.fat || 0,
-        carbohydrates: recipeData.meta?.carbohydrates || 0,
-      },
-      deep_info: recipeData.deep_info || {},
-      cooking_time: recipeData.meta?.cooking_time_min || 30,
-      servings: servings,
-      created_at: new Date().toISOString(),
-    };
+      if (!recipeData.title || !recipeData.main_ingredients) {
+        console.warn(`⚠️  레시피 ${i + 1} 필수 필드 누락, 건너뛰기`);
+        continue;
+      }
 
-    console.log(`📝 생성된 레시피: "${newRecipe.title}"`);
-    console.log(`   - 재료: ${newRecipe.ingredients_detail.length}개`);
-    console.log(`   - 조리 단계: ${newRecipe.instructions.length}단계`);
-    console.log(`   - 조리 시간: ${newRecipe.cooking_time}분`);
-    console.log(`   - 칼로리: ${newRecipe.nutrition.calories}kcal/인분`);
+      const newRecipe: Recipe = {
+        id: randomUUID(),
+        title: recipeData.title || 'Untitled Recipe',
+        description: recipeData.description || '',
+        main_ingredients: Array.isArray(recipeData.main_ingredients)
+          ? recipeData.main_ingredients
+          : sortedIngredients,
+        theme_tags: Array.isArray(recipeData.theme_tags) ? recipeData.theme_tags : [],
+        ingredients_detail: Array.isArray(recipeData.ingredients)
+          ? recipeData.ingredients
+          : [],
+        instructions: Array.isArray(recipeData.steps)
+          ? recipeData.steps.map((s: any) =>
+              `${s.step_no}. ${s.action}${s.tip ? ' (팁: ' + s.tip + ')' : ''}`
+            )
+          : [],
+        meta: recipeData.meta || {},
+        nutrition: {
+          calories: recipeData.meta?.calories_per_serving || 0,
+          protein: recipeData.meta?.protein || 0,
+          fat: recipeData.meta?.fat || 0,
+          carbohydrates: recipeData.meta?.carbohydrates || 0,
+        },
+        deep_info: recipeData.deep_info || {},
+        cooking_time: recipeData.meta?.cooking_time_min || 30,
+        servings: servings,
+        created_at: new Date().toISOString(),
+      };
 
-    // Step 5: 중복 체크
-    const { data: existingRecipe } = await supabase
-      .from('generated_recipes')
-      .select('id')
-      .eq('title', newRecipe.title)
-      .maybeSingle();
+      console.log(`📝 [${i + 1}] "${newRecipe.title}"`);
+      console.log(`   - 재료: ${newRecipe.ingredients_detail.length}개, 단계: ${newRecipe.instructions.length}단계`);
+      console.log(`   - 조리 시간: ${newRecipe.cooking_time}분, 칼로리: ${newRecipe.nutrition.calories}kcal`);
 
-    if (existingRecipe) {
-      console.log('⏭️  동일한 제목의 레시피가 이미 존재합니다. 건너뜁니다.');
-      // 로그에만 기록하고 에러는 발생시키지 않음
+      // 중복 체크
+      const { data: existingRecipe } = await supabase
+        .from('generated_recipes')
+        .select('id')
+        .eq('title', newRecipe.title)
+        .maybeSingle();
+
+      if (existingRecipe) {
+        console.log(`⏭️  [${i + 1}] 중복된 제목, 건너뜀`);
+        skipCount++;
+        await supabase.from('generation_logs').insert({
+          ingredient: mainIngredient.name,
+          dish_name: newRecipe.title,
+          status: 'skipped',
+          error_message: 'Duplicate recipe title',
+          created_at: new Date().toISOString(),
+        });
+        continue;
+      }
+
+      // DB 저장
+      const dbRecipe = recipeToDatabase(newRecipe);
+      const { data: recipeId, error: insertError } = await supabase
+        .rpc('insert_recipe', { recipe_data: dbRecipe });
+
+      if (insertError) {
+        console.error(`❌ [${i + 1}] DB 저장 실패:`, insertError.message);
+        await supabase.from('generation_logs').insert({
+          ingredient: mainIngredient.name,
+          dish_name: newRecipe.title,
+          status: 'failed',
+          error_message: insertError.message,
+          created_at: new Date().toISOString(),
+        });
+        continue;
+      }
+
+      console.log(`✅ [${i + 1}] 저장 완료! ID: ${recipeId}`);
+      successCount++;
+
+      // 성공 로그
       await supabase.from('generation_logs').insert({
         ingredient: mainIngredient.name,
         dish_name: newRecipe.title,
-        status: 'skipped',
-        error_message: 'Duplicate recipe title',
+        status: 'success',
         created_at: new Date().toISOString(),
       });
-      return;
     }
 
-    // Step 6: DB 저장 (RPC 함수 사용, 기존 로직과 동일)
-    const dbRecipe = recipeToDatabase(newRecipe);
-
-    console.log('💾 데이터베이스에 저장 중...');
-    const { data: recipeId, error: insertError } = await supabase
-      .rpc('insert_recipe', { recipe_data: dbRecipe });
-
-    if (insertError) {
-      console.error('❌ DB 저장 실패:', insertError);
-      throw new Error('Failed to save recipe to database: ' + insertError.message);
-    }
-
-    console.log(`✅ 레시피 저장 완료! ID: ${recipeId}`);
-
-    // Step 7: 성공 로그 저장
-    await supabase.from('generation_logs').insert({
-      ingredient: mainIngredient.name,
-      dish_name: newRecipe.title,
-      status: 'success',
-      created_at: new Date().toISOString(),
-    });
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🎉 레시피 자동 생성 완료!');
-    console.log(`📌 제목: ${newRecipe.title}`);
     console.log(`📌 메인 재료: ${mainIngredient.name}`);
-    console.log(`📌 ID: ${recipeId}`);
+    console.log(`📊 총 ${recipesData.length}개 중:`);
+    console.log(`   ✅ 성공: ${successCount}개`);
+    console.log(`   ⏭️  중복: ${skipCount}개`);
+    console.log(`   ❌ 실패: ${recipesData.length - successCount - skipCount}개`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   } catch (error: any) {
