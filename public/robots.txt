@@ -1,0 +1,29 @@
+# robots.txt for 오늘의냉장고 (oneulfridge.com)
+# 모든 검색 엔진 크롤러를 허용하여 SEO 최적화
+
+# 모든 크롤러에 대한 기본 규칙
+User-agent: *
+Allow: /
+
+# sitemap.xml 위치 (Google Search Console 제출 필수)
+Sitemap: https://www.oneulfridge.com/sitemap.xml
+
+# 특정 경로 차단 (필요시 추가)
+# Disallow: /admin/
+# Disallow: /api/
+# Disallow: /private/
+
+# 크롤 속도 제한 (선택사항, 서버 부하 방지)
+# Crawl-delay: 1
+
+# Google 봇 특별 설정 (선택사항)
+User-agent: Googlebot
+Allow: /
+
+# Bing 봇 특별 설정 (선택사항)
+User-agent: Bingbot
+Allow: /
+
+# Naver 봇 특별 설정 (선택사항)
+User-agent: Yeti
+Allow: /
