@@ -161,6 +161,15 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], similarReci
           </div>
 
           <div className="p-6">
+            {/* 요리 소개 */}
+            {displayRecipe.description && (
+              <div className="mb-6 p-4 bg-gradient-to-br from-orange-50 to-orange-100 border-l-4 border-primary rounded-xl">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {displayRecipe.description}
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-4 mb-6">
               <div className="flex items-center gap-2 text-gray-600">
                 <Clock className="w-5 h-5 text-primary" />

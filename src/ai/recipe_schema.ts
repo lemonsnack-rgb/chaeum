@@ -32,7 +32,7 @@ export interface RecipeJsonSchema {
 
 export const RECIPE_JSON_SCHEMA_TEMPLATE = `{
   "title": "레시피 제목",
-  "description": "한 줄 요약",
+  "description": "이 요리의 특징, 어울리는 상황, 맛의 매력을 4-5문장으로 작성 (구어체, 친근한 말투 사용)",
   "meta": {
     "difficulty": "초급/중급/고급",
     "cooking_time_min": 30,
