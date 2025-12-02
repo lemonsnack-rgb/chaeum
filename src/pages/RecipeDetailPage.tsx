@@ -192,11 +192,10 @@ export function RecipeDetailPage() {
       // ⭐ 조리 시간 (SEO 핵심) - totalTime만 제공하여 정확한 시간 표시
       "totalTime": totalTimeISO,
 
-      // ⭐ 이미지 (현재는 기본 이미지, 추후 AI 생성 이미지로 교체 가능)
-      "image": [
-        `https://www.oneulfridge.com/images/recipe-placeholder.jpg`,
-        `https://www.oneulfridge.com/og-image.jpg`
-      ],
+      // ⭐ 이미지 (Unsplash 실제 이미지 또는 기본 이미지)
+      "image": recipe.image_url
+        ? [recipe.image_url, `https://www.oneulfridge.com/og-image.jpg`]
+        : [`https://www.oneulfridge.com/images/recipe-placeholder.jpg`, `https://www.oneulfridge.com/og-image.jpg`],
 
       // ⭐ 인분
       "recipeYield": `${recipe.servings || 2}인분`,

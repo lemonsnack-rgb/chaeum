@@ -17,6 +17,8 @@ export interface Recipe {
   cooking_time: number;
   servings: number;
   created_at: string;
+  image_url?: string; // Unsplash 이미지 URL
+  image_photographer?: string; // 사진작가 이름 (크레딧)
 }
 
 // 실제 DB에 저장되는 구조
@@ -40,6 +42,8 @@ interface DatabaseRecipe {
   theme_tags: string[];
   main_ingredients: string[];
   created_at: string;
+  image_url?: string; // Unsplash 이미지 URL
+  image_photographer?: string; // 사진작가 이름
 }
 
 export interface RecipeMeta {
@@ -95,6 +99,8 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
     theme_tags: recipe.theme_tags,
     main_ingredients: recipe.main_ingredients,
     created_at: recipe.created_at,
+    image_url: recipe.image_url,
+    image_photographer: recipe.image_photographer,
   };
 }
 
@@ -127,6 +133,8 @@ function databaseToRecipe(dbRecipe: any): Recipe {
     cooking_time: dbRecipe.cooking_time_min || 30,
     servings: dbRecipe.content?.servings || 2,
     created_at: dbRecipe.created_at,
+    image_url: dbRecipe.image_url,
+    image_photographer: dbRecipe.image_photographer,
   };
 }
 

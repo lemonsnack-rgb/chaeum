@@ -35,6 +35,8 @@ interface Recipe {
   cooking_time: number;
   servings: number;
   created_at: string;
+  image_url?: string;
+  image_photographer?: string;
 }
 
 interface DatabaseRecipe {
@@ -57,6 +59,8 @@ interface DatabaseRecipe {
   theme_tags: string[];
   main_ingredients: string[];
   created_at: string;
+  image_url?: string;
+  image_photographer?: string;
 }
 
 interface RecipeMeta {
@@ -112,7 +116,79 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
     theme_tags: recipe.theme_tags,
     main_ingredients: recipe.main_ingredients,
     created_at: recipe.created_at,
+    image_url: recipe.image_url,
+    image_photographer: recipe.image_photographer,
   };
+}
+
+// Unsplash 이미지 검색 함수
+async function searchUnsplashImage(recipeTitle: string, mainIngredients: string[]): Promise<{ url: string; photographer: string } | null> {
+  const UNSPLASH_ACCESS_KEY = process.env.VITE_UNSPLASH_ACCESS_KEY;
+
+  if (!UNSPLASH_ACCESS_KEY) {
+    console.log('⚠️  Unsplash API 키가 없습니다. 이미지 검색을 건너뜁니다.');
+    return null;
+  }
+
+  try {
+    // 검색어 생성 전략
+    const foodNameMap: Record<string, string> = {
+      '김치찌개': 'kimchi jjigae korean stew',
+      '된장찌개': 'doenjang jjigae korean stew',
+      '불고기': 'bulgogi korean bbq',
+      '비빔밥': 'bibimbap korean rice bowl',
+      '떡볶이': 'tteokbokki korean rice cake',
+      '삼겹살': 'samgyeopsal korean pork belly',
+      '김밥': 'kimbap korean roll',
+      '잡채': 'japchae korean noodles',
+      '닭갈비': 'dakgalbi korean chicken',
+      '순두부찌개': 'sundubu jjigae korean tofu stew',
+    };
+
+    const cleanTitle = recipeTitle.replace(/\s*(레시피|만들기|요리)\s*/g, '').trim();
+    const searchQuery = foodNameMap[cleanTitle] || `${cleanTitle} korean food`;
+
+    console.log(`   🔍 Unsplash 검색: "${searchQuery}"`);
+
+    const response = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&orientation=landscape`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.log(`   ⚠️  Unsplash API 오류: ${response.status}`);
+      return null;
+    }
+
+    const data: any = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      const photo = data.results[0];
+
+      // 다운로드 트래킹 (Unsplash API 정책)
+      if (photo.links?.download_location) {
+        await fetch(photo.links.download_location, {
+          headers: { 'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}` },
+        });
+      }
+
+      console.log(`   ✅ 이미지 찾음: ${photo.user.name}`);
+      return {
+        url: photo.urls.regular,
+        photographer: photo.user.name,
+      };
+    }
+
+    console.log(`   ❌ "${recipeTitle}" 이미지를 찾을 수 없습니다.`);
+    return null;
+  } catch (error: any) {
+    console.error(`   ❌ Unsplash 검색 실패:`, error.message);
+    return null;
+  }
 }
 
 // 헬퍼 함수: 특정 테마로 레시피 생성
@@ -221,6 +297,13 @@ async function generateRecipesForTheme(
     console.log(`📝 [${i + 1}] "${newRecipe.title}"`);
     console.log(`   - 재료: ${newRecipe.ingredients_detail.length}개, 단계: ${newRecipe.instructions.length}단계`);
     console.log(`   - 조리 시간: ${newRecipe.cooking_time}분, 칼로리: ${newRecipe.nutrition.calories}kcal`);
+
+    // Unsplash 이미지 검색
+    const imageData = await searchUnsplashImage(newRecipe.title, newRecipe.main_ingredients);
+    if (imageData) {
+      newRecipe.image_url = imageData.url;
+      newRecipe.image_photographer = imageData.photographer;
+    }
 
     // 중복 체크
     const { data: existingRecipe } = await supabase

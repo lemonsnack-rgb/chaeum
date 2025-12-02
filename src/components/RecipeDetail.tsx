@@ -137,6 +137,26 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], similarReci
   return (
     <div className="max-w-md mx-auto px-4 py-6 pb-20">
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden mb-6">
+          {/* 레시피 이미지 */}
+          {displayRecipe.image_url && (
+            <div className="relative h-64 w-full overflow-hidden">
+              <img
+                src={displayRecipe.image_url}
+                alt={`${displayRecipe.title} 요리 사진`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              {/* 사진작가 크레딧 */}
+              {displayRecipe.image_photographer && (
+                <div className="absolute bottom-0 right-0 bg-black/60 text-white text-xs px-2 py-1 rounded-tl-lg">
+                  Photo by {displayRecipe.image_photographer}
+                </div>
+              )}
+              {/* 그라데이션 오버레이 */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+            </div>
+          )}
+
           <div className="bg-gradient-to-br from-primary to-primary-dark p-6">
             {isEditing ? (
               <input
