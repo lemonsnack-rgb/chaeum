@@ -163,11 +163,17 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], similarReci
           <div className="p-6">
             {/* 요리 소개 */}
             {displayRecipe.description && (
-              <div className="mb-6 p-4 bg-gradient-to-br from-orange-50 to-orange-100 border-l-4 border-primary rounded-xl">
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {displayRecipe.description}
-                </p>
-              </div>
+              <section className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-6 bg-primary rounded-full"></span>
+                  요리 소개
+                </h3>
+                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 border-l-4 border-primary rounded-xl">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {displayRecipe.description}
+                  </p>
+                </div>
+              </section>
             )}
 
             <div className="flex gap-4 mb-6">
