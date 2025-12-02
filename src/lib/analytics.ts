@@ -6,6 +6,7 @@ let isInitialized = false;
 /**
  * Google Analytics 4 초기화
  * 환경 변수에서 측정 ID를 가져와 GA4를 초기화합니다.
+ * 멀티 트래커: 두 개의 GA4 속성에 동시 전송
  */
 export function initGA() {
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
@@ -21,13 +22,31 @@ export function initGA() {
   }
 
   try {
-    ReactGA.initialize(measurementId, {
-      gtagOptions: {
-        send_page_view: false, // 수동으로 페이지뷰 추적
+    // 멀티 트래커 설정: 두 개의 GA4 속성에 동시 전송
+    ReactGA.initialize([
+      {
+        trackingId: measurementId, // G-326E5CK77X (메인)
+        gaOptions: {
+          name: 'tracker1',
+        },
+        gtagOptions: {
+          send_page_view: false,
+        },
       },
-    });
+      {
+        trackingId: 'G-WNWJEWQ883', // 보조 트래커
+        gaOptions: {
+          name: 'tracker2',
+        },
+        gtagOptions: {
+          send_page_view: false,
+        },
+      },
+    ]);
     isInitialized = true;
-    console.log('✅ GA4 초기화 완료:', measurementId);
+    console.log('✅ GA4 멀티 트래커 초기화 완료');
+    console.log('  - Tracker 1 (메인):', measurementId);
+    console.log('  - Tracker 2 (보조): G-WNWJEWQ883');
   } catch (error) {
     console.error('❌ GA4 초기화 실패:', error);
   }
