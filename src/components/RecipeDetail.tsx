@@ -217,9 +217,9 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                                   )}
                                   {isMissing && (
                                     <a
-                                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient.name)}`}
+                                      href={`https://link.coupang.com/a/AF8562976?lptag=AF8562976&subId=${encodeURIComponent(ingredient.name)}&itemId=&vendorItemId=&q=${encodeURIComponent(ingredient.name)}`}
                                       target="_blank"
-                                      rel="noopener noreferrer"
+                                      rel="noopener noreferrer nofollow"
                                       className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -258,9 +258,9 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                                   )}
                                   {isMissing && (
                                     <a
-                                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient.name)}`}
+                                      href={`https://link.coupang.com/a/AF8562976?lptag=AF8562976&subId=${encodeURIComponent(ingredient.name)}&itemId=&vendorItemId=&q=${encodeURIComponent(ingredient.name)}`}
                                       target="_blank"
-                                      rel="noopener noreferrer"
+                                      rel="noopener noreferrer nofollow"
                                       className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -293,9 +293,9 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                                   </span>
                                   {isMissing && (
                                     <a
-                                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient.name)}`}
+                                      href={`https://link.coupang.com/a/AF8562976?lptag=AF8562976&subId=${encodeURIComponent(ingredient.name)}&itemId=&vendorItemId=&q=${encodeURIComponent(ingredient.name)}`}
                                       target="_blank"
-                                      rel="noopener noreferrer"
+                                      rel="noopener noreferrer nofollow"
                                       className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -331,6 +331,27 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
                   </div>
                 ))}
               </div>
+            </section>
+
+            {/* 쿠팡 파트너스 배너 */}
+            <section className="mb-6">
+              <div className="flex justify-center">
+                <a
+                  href="https://link.coupang.com/a/c9Wiys"
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="block"
+                >
+                  <img
+                    src="https://ads-partners.coupang.com/banners/947280?subId=&traceId=V0-301-371ae01f4226dec2-I947280&w=320&h=100"
+                    alt="쿠팡 파트너스 배너"
+                    className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
+                  />
+                </a>
+              </div>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
+              </p>
             </section>
 
             <section className="mb-6">
