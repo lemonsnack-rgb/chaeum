@@ -282,7 +282,7 @@ async function generateRecipesForTheme(
 
 async function generateRecipe() {
   console.log('🤖 레시피 자동 생성 시작... [' + new Date().toLocaleString('ko-KR') + ']');
-  console.log('📊 목표: 인기 테마 6개 + 기본 4개 = 총 10개 레시피 생성\n');
+  console.log('📊 목표: 자유 테마 5개 + 랜덤 테마 5개 = 총 10개 레시피 생성\n');
 
   try {
     // Step 1: 최근 생성된 재료 조회 (중복 방지)
@@ -309,26 +309,31 @@ async function generateRecipe() {
     const mainIngredient = selectRandomIngredient(uniqueRecent);
     console.log(`📦 선택된 메인 재료: ${mainIngredient.name} (우선순위: ${mainIngredient.priority}, 카테고리: ${mainIngredient.category})`);
 
-    // Step 3: 인기 키워드 테마로 6개 생성
-    const POPULAR_THEMES = ['간편식', '다이어트', '10분 요리', '채식', '캠핑', '술안주'];
-
+    // Step 3: 자유 테마로 5개 생성 (다양한 레시피 확보)
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📍 Phase 1: 인기 키워드 테마 레시피 생성 (6개)');
+    console.log('📍 Phase 1: 자유 테마 레시피 생성 (5개)');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     const themeResults: GenerationResult[] = [];
-    for (const theme of POPULAR_THEMES) {
+    const freeThemeResult = await generateRecipesForTheme(mainIngredient, '', 5);
+    themeResults.push(freeThemeResult);
+
+    // Step 4: 랜덤 테마로 5개 생성
+    const ALL_THEMES = ['간편식', '다이어트', '10분 요리', '채식', '캠핑', '술안주', '야식', '도시락'];
+
+    // 랜덤하게 5개 테마 선택 (중복 없이)
+    const shuffled = [...ALL_THEMES].sort(() => Math.random() - 0.5);
+    const selectedThemes = shuffled.slice(0, 5);
+
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📍 Phase 2: 랜덤 테마 레시피 생성 (5개)');
+    console.log(`🎲 선택된 테마: ${selectedThemes.join(', ')}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    for (const theme of selectedThemes) {
       const result = await generateRecipesForTheme(mainIngredient, theme, 1);
       themeResults.push(result);
     }
-
-    // Step 4: 테마 없이 4개 생성
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📍 Phase 2: 기본 레시피 생성 (4개)');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    const basicResult = await generateRecipesForTheme(mainIngredient, '', 4);
-    themeResults.push(basicResult);
 
     // 전체 통계 계산
     const totalStats = themeResults.reduce(
@@ -350,11 +355,11 @@ async function generateRecipe() {
     console.log(`   ⏭️  중복: ${totalStats.skipped}개`);
     console.log(`   ❌ 실패: ${totalStats.failed}개`);
     console.log('\n📋 테마별 상세:');
-    POPULAR_THEMES.forEach((theme, idx) => {
-      const result = themeResults[idx];
-      console.log(`   ${idx + 1}. ${theme}: 성공 ${result.success}/${result.total}`);
+    console.log(`   1. 자유 테마: 성공 ${freeThemeResult.success}/${freeThemeResult.total}`);
+    selectedThemes.forEach((theme, idx) => {
+      const result = themeResults[idx + 1];
+      console.log(`   ${idx + 2}. ${theme}: 성공 ${result.success}/${result.total}`);
     });
-    console.log(`   7. 기본: 성공 ${basicResult.success}/${basicResult.total}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   } catch (error: any) {
