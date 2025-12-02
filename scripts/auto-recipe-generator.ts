@@ -149,7 +149,7 @@ async function generateRecipe() {
     const themePreference = '';
     const allergies: string[] = [];
     const dietaryPreferences: string[] = [];
-    const recipesToGenerate = 3; // 한 번에 3개씩 생성 (원하는 만큼 조정 가능: 1, 3, 5 등)
+    const recipesToGenerate = 5; // 한 번에 5개씩 생성
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
