@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { initGA, trackPageView } from './lib/analytics';
 import { ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
 import { CameraButton } from './components/CameraButton';
@@ -40,6 +41,7 @@ type MyRecipesSubTab = 'recommended' | 'saved';
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>('fridge');
   const [myRecipesSubTab, setMyRecipesSubTab] = useState<MyRecipesSubTab>('recommended');
@@ -69,6 +71,17 @@ function App() {
     deleteIngredient,
     addMultipleIngredients,
   } = useIngredients();
+
+  // ===== Google Analytics 4 초기화 및 페이지뷰 추적 =====
+  useEffect(() => {
+    // GA4 초기화 (최초 1회)
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    // 페이지 변경 시 자동으로 페이지뷰 추적
+    trackPageView(location.pathname + location.search, document.title);
+  }, [location]);
 
   const handleIngredientsExtracted = async (names: string[]) => {
     console.log('Extracted ingredients:', names);

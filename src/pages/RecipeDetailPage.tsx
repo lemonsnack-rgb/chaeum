@@ -6,6 +6,7 @@ import { Layout } from '../components/Layout';
 import { getRecipeById, Recipe, saveUserRecipe, unsaveUserRecipe, getSimilarIngredientRecipes, getCompanionRecipes, getBalancedNutritionRecipes } from '../lib/recipeService';
 import { getCurrentUser } from '../lib/authService';
 import { getRecentRecipeView } from '../lib/recipeViewService';
+import { trackRecipeView as trackRecipeViewGA, trackRecipeSave, trackRecipeUnsave } from '../lib/analytics';
 import { Loader2 } from 'lucide-react';
 
 export function RecipeDetailPage() {
@@ -48,6 +49,9 @@ export function RecipeDetailPage() {
 
       console.log('[RecipeDetailPage] Loaded recipe:', recipeData);
       setRecipe(recipeData);
+
+      // GA4 레시피 조회 이벤트 추적
+      trackRecipeViewGA(recipeData.id, recipeData.title);
 
       // 관련 레시피 로드 (3가지 카테고리)
       const [similar, companion, balanced] = await Promise.all([
