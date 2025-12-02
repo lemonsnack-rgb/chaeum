@@ -2,11 +2,15 @@ name: Auto Generate Recipe
 
 on:
   schedule:
-    # 5분마다 실행
+    # 5분마다 실행 (백업용, GitHub의 제한으로 불규칙적)
     - cron: '*/5 * * * *'
 
   # 수동 실행 가능
   workflow_dispatch:
+
+  # 외부 cron 서비스에서 트리거
+  repository_dispatch:
+    types: [generate-recipe]
 
 jobs:
   generate:
