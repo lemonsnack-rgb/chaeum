@@ -7,12 +7,15 @@ interface KeywordItem {
 }
 
 const POPULAR_KEYWORDS: KeywordItem[] = [
+  { id: 'all', label: '전체', emoji: '🏠', searchTerm: '', color: 'bg-gray-100' },
   { id: 'easy', label: '간편식', emoji: '🔥', searchTerm: '간편식', color: 'bg-orange-100' },
   { id: 'diet', label: '다이어트', emoji: '💪', searchTerm: '다이어트', color: 'bg-blue-100' },
   { id: 'quick', label: '빠른요리', emoji: '⚡', searchTerm: '10분', color: 'bg-yellow-100' },
   { id: 'vegan', label: '채식', emoji: '🥗', searchTerm: '채식', color: 'bg-green-100' },
   { id: 'camping', label: '캠핑요리', emoji: '🏕️', searchTerm: '캠핑', color: 'bg-purple-100' },
   { id: 'snack', label: '술안주', emoji: '🍺', searchTerm: '술안주', color: 'bg-amber-100' },
+  { id: 'midnight', label: '야식', emoji: '🌙', searchTerm: '야식', color: 'bg-indigo-100' },
+  { id: 'lunchbox', label: '도시락', emoji: '🍱', searchTerm: '도시락', color: 'bg-pink-100' },
 ];
 
 interface PopularKeywordsProps {
@@ -31,7 +34,7 @@ export function PopularKeywords({
         인기 키워드로 빠르게 찾기
       </h3>
 
-      {/* 3개씩 2줄 배치 */}
+      {/* 3개씩 3줄 배치 (총 9개) */}
       <div className="grid grid-cols-3 gap-4">
         {POPULAR_KEYWORDS.map((keyword) => {
           const isSelected = selectedKeyword === keyword.searchTerm;

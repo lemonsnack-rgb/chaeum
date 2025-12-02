@@ -25,7 +25,8 @@ export function RecipeSearchWithInfiniteScroll({
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // 실제 사용할 검색어: 키워드가 선택되어 있으면 키워드 우선, 아니면 외부 검색어
-  const effectiveSearchQuery = selectedKeyword || searchQuery;
+  // selectedKeyword가 null이 아니면(''도 포함) 키워드를 사용
+  const effectiveSearchQuery = selectedKeyword !== null ? selectedKeyword : searchQuery;
 
   // 초기 로드
   useEffect(() => {
