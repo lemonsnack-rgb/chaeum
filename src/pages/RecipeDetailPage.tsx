@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { Layout } from '../components/Layout';
-import { getRecipeById, Recipe, saveUserRecipe, unsaveUserRecipe, getRelatedRecipes } from '../lib/recipeService';
+import { getRecipeById, Recipe, saveUserRecipe, unsaveUserRecipe, getSimilarIngredientRecipes, getCompanionRecipes, getBalancedNutritionRecipes } from '../lib/recipeService';
 import { getCurrentUser } from '../lib/authService';
 import { getRecentRecipeView } from '../lib/recipeViewService';
 import { Loader2 } from 'lucide-react';
@@ -12,7 +12,9 @@ export function RecipeDetailPage() {
   const { recipeId } = useParams<{ recipeId: string }>();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]);
+  const [similarRecipes, setSimilarRecipes] = useState<Recipe[]>([]);
+  const [companionRecipes, setCompanionRecipes] = useState<Recipe[]>([]);
+  const [balancedRecipes, setBalancedRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,10 +49,20 @@ export function RecipeDetailPage() {
       console.log('[RecipeDetailPage] Loaded recipe:', recipeData);
       setRecipe(recipeData);
 
-      // 관련 레시피 로드
-      const related = await getRelatedRecipes(recipeData, 6);
-      console.log('[RecipeDetailPage] Loaded related recipes:', related.length);
-      setRelatedRecipes(related);
+      // 관련 레시피 로드 (3가지 카테고리)
+      const [similar, companion, balanced] = await Promise.all([
+        getSimilarIngredientRecipes(recipeData, 5),
+        getCompanionRecipes(recipeData, 4),
+        getBalancedNutritionRecipes(recipeData, 4)
+      ]);
+
+      console.log('[RecipeDetailPage] Similar recipes:', similar.length);
+      console.log('[RecipeDetailPage] Companion recipes:', companion.length);
+      console.log('[RecipeDetailPage] Balanced recipes:', balanced.length);
+
+      setSimilarRecipes(similar);
+      setCompanionRecipes(companion);
+      setBalancedRecipes(balanced);
     } catch (err) {
       console.error('Failed to load recipe:', err);
       setError('레시피를 불러오는 중 오류가 발생했습니다.');
@@ -368,7 +380,9 @@ export function RecipeDetailPage() {
           recipe={recipe}
           onBack={() => navigate('/')}
           userIngredients={[]}
-          relatedRecipes={relatedRecipes}
+          similarRecipes={similarRecipes}
+          companionRecipes={companionRecipes}
+          balancedRecipes={balancedRecipes}
           onSaveUserRecipe={handleSave}
           onQuickSave={handleSave}
           onUnsave={handleUnsave}

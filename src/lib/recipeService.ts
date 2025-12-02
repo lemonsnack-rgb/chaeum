@@ -830,103 +830,266 @@ export async function getRecipeById(recipeId: string): Promise<Recipe | null> {
 }
 
 /**
- * 관련 레시피 추천 (같은 재료 또는 테마 기반)
+ * 1. 재료가 비슷한 요리 추천 (같은 main_ingredients 기반)
  * @param currentRecipe 현재 레시피
- * @param limit 반환할 레시피 수 (기본값: 6)
+ * @param limit 반환할 레시피 수 (기본값: 5)
  */
-export async function getRelatedRecipes(
+export async function getSimilarIngredientRecipes(
   currentRecipe: Recipe,
-  limit: number = 6
+  limit: number = 5
 ): Promise<Recipe[]> {
   if (!supabase || !currentRecipe) {
     return [];
   }
 
   try {
-    // 1단계: 같은 main_ingredients를 가진 레시피 찾기
     const mainIngredients = currentRecipe.main_ingredients || [];
     const themeTags = currentRecipe.theme_tags || [];
 
-    if (mainIngredients.length === 0 && themeTags.length === 0) {
-      // 재료와 테마가 모두 없으면 최근 레시피 반환
-      const { data, error } = await supabase
-        .from('generated_recipes')
-        .select('*')
-        .neq('id', currentRecipe.id)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (error) {
-        console.error('Error fetching related recipes:', error);
-        return [];
-      }
-
-      return (data || []).map(databaseToRecipe);
+    if (mainIngredients.length === 0) {
+      return [];
     }
 
-    // 2단계: 재료 또는 테마가 겹치는 레시피 찾기
+    // 같은 재료를 사용하는 레시피 찾기
     const { data, error } = await supabase
       .from('generated_recipes')
       .select('*')
       .neq('id', currentRecipe.id)
-      .or(
-        mainIngredients.length > 0
-          ? `main_ingredients.ov.{${mainIngredients.join(',')}}${themeTags.length > 0 ? `,theme_tags.ov.{${themeTags.join(',')}}` : ''}`
-          : `theme_tags.ov.{${themeTags.join(',')}}`
-      )
+      .or(`main_ingredients.ov.{${mainIngredients.join(',')}}`)
       .order('created_at', { ascending: false })
-      .limit(limit * 2); // 더 많이 가져와서 필터링
+      .limit(limit * 2);
 
     if (error) {
-      console.error('Error fetching related recipes:', error);
+      console.error('Error fetching similar ingredient recipes:', error);
       return [];
     }
 
     if (!data || data.length === 0) {
-      // 관련 레시피가 없으면 최근 레시피 반환
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('generated_recipes')
-        .select('*')
-        .neq('id', currentRecipe.id)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (fallbackError) {
-        console.error('Error fetching fallback recipes:', error);
-        return [];
-      }
-
-      return (fallbackData || []).map(databaseToRecipe);
+      return [];
     }
 
-    // 3단계: 관련도 점수 계산 및 정렬
+    // 관련도 점수 계산 (재료 중심)
     const recipesWithScore = data.map((dbRecipe) => {
       const recipe = databaseToRecipe(dbRecipe);
       let score = 0;
 
-      // 같은 재료 개수만큼 점수 추가
+      // 같은 재료 개수만큼 점수 추가 (가중치 높음)
       const commonIngredients = (recipe.main_ingredients || []).filter(ing =>
         mainIngredients.includes(ing)
       );
-      score += commonIngredients.length * 3;
+      score += commonIngredients.length * 5;
 
-      // 같은 테마 태그 개수만큼 점수 추가
+      // 같은 테마 태그는 보너스 점수
       const commonTags = (recipe.theme_tags || []).filter(tag =>
         themeTags.includes(tag)
       );
-      score += commonTags.length * 2;
+      score += commonTags.length * 1;
 
       return { recipe, score };
     });
 
-    // 점수가 높은 순으로 정렬하고 limit만큼 반환
     return recipesWithScore
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
       .map(item => item.recipe);
 
   } catch (error) {
-    console.error('Error in getRelatedRecipes:', error);
+    console.error('Error in getSimilarIngredientRecipes:', error);
     return [];
   }
+}
+
+/**
+ * 2. 같이 먹으면 좋은 짝꿍 요리 추천
+ * @param currentRecipe 현재 레시피
+ * @param limit 반환할 레시피 수 (기본값: 4)
+ */
+export async function getCompanionRecipes(
+  currentRecipe: Recipe,
+  limit: number = 4
+): Promise<Recipe[]> {
+  if (!supabase || !currentRecipe) {
+    return [];
+  }
+
+  try {
+    const themeTags = currentRecipe.theme_tags || [];
+
+    // 현재 레시피 타입 판별
+    const sideDishTags = ['반찬', '국', '찌개', '전', '조림', '무침', '볶음', '김치'];
+    const mainDishTags = ['메인', '구이', '찜', '덮밥', '볶음밥', '비빔밥'];
+
+    const isMainDish = themeTags.some(tag => mainDishTags.includes(tag));
+    const isSideDish = themeTags.some(tag => sideDishTags.includes(tag));
+
+    let targetTags: string[];
+
+    if (isMainDish) {
+      // 메인 요리면 사이드 디시 추천
+      targetTags = sideDishTags;
+    } else if (isSideDish) {
+      // 사이드 디시면 메인 요리 추천
+      targetTags = mainDishTags;
+    } else {
+      // 판별 안 되면 사이드 디시 추천 (범용)
+      targetTags = sideDishTags;
+    }
+
+    // 짝꿍 요리 검색
+    const { data, error } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .neq('id', currentRecipe.id)
+      .or(targetTags.map(tag => `theme_tags.cs.{${tag}}`).join(','))
+      .order('created_at', { ascending: false })
+      .limit(limit * 2);
+
+    if (error) {
+      console.error('Error fetching companion recipes:', error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      // 짝꿍 요리가 없으면 랜덤 레시피 반환
+      const { data: fallbackData } = await supabase
+        .from('generated_recipes')
+        .select('*')
+        .neq('id', currentRecipe.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      return (fallbackData || []).map(databaseToRecipe);
+    }
+
+    return data
+      .map(databaseToRecipe)
+      .slice(0, limit);
+
+  } catch (error) {
+    console.error('Error in getCompanionRecipes:', error);
+    return [];
+  }
+}
+
+/**
+ * 3. 영양 균형을 맞춘 요리 추천
+ * @param currentRecipe 현재 레시피
+ * @param limit 반환할 레시피 수 (기본값: 4)
+ */
+export async function getBalancedNutritionRecipes(
+  currentRecipe: Recipe,
+  limit: number = 4
+): Promise<Recipe[]> {
+  if (!supabase || !currentRecipe) {
+    return [];
+  }
+
+  try {
+    // 모든 레시피 중 영양 정보가 있는 것만 가져오기
+    const { data, error } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .neq('id', currentRecipe.id)
+      .order('created_at', { ascending: false })
+      .limit(50); // 50개 가져와서 필터링
+
+    if (error) {
+      console.error('Error fetching balanced nutrition recipes:', error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // 영양 균형 점수 계산
+    const recipesWithScore = data
+      .map(databaseToRecipe)
+      .filter(recipe => {
+        const nutrition = recipe.nutrition;
+        return nutrition && nutrition.calories > 0;
+      })
+      .map(recipe => {
+        const nutrition = recipe.nutrition!;
+        const totalCalories = nutrition.calories;
+
+        if (totalCalories === 0) {
+          return { recipe, score: 0 };
+        }
+
+        // 영양소별 칼로리 계산 (단백질 4kcal/g, 지방 9kcal/g, 탄수화물 4kcal/g)
+        const proteinCal = nutrition.protein * 4;
+        const fatCal = nutrition.fat * 9;
+        const carbsCal = nutrition.carbohydrates * 4;
+        const totalMacroCalories = proteinCal + fatCal + carbsCal;
+
+        if (totalMacroCalories === 0) {
+          return { recipe, score: 0 };
+        }
+
+        // 영양소 비율 계산
+        const proteinRatio = proteinCal / totalMacroCalories;
+        const fatRatio = fatCal / totalMacroCalories;
+        const carbsRatio = carbsCal / totalMacroCalories;
+
+        // 균형잡힌 영양소 비율 기준
+        // 이상적: 단백질 25-35%, 탄수화물 40-50%, 지방 20-30%
+        let score = 0;
+
+        // 단백질 점수 (25-35% 이상적)
+        if (proteinRatio >= 0.25 && proteinRatio <= 0.35) {
+          score += 10;
+        } else if (proteinRatio >= 0.20 && proteinRatio < 0.25) {
+          score += 7;
+        } else if (proteinRatio > 0.35 && proteinRatio <= 0.40) {
+          score += 7;
+        }
+
+        // 탄수화물 점수 (40-50% 이상적)
+        if (carbsRatio >= 0.40 && carbsRatio <= 0.50) {
+          score += 10;
+        } else if (carbsRatio >= 0.35 && carbsRatio < 0.40) {
+          score += 7;
+        } else if (carbsRatio > 0.50 && carbsRatio <= 0.55) {
+          score += 7;
+        }
+
+        // 지방 점수 (20-30% 이상적)
+        if (fatRatio >= 0.20 && fatRatio <= 0.30) {
+          score += 10;
+        } else if (fatRatio >= 0.15 && fatRatio < 0.20) {
+          score += 7;
+        } else if (fatRatio > 0.30 && fatRatio <= 0.35) {
+          score += 7;
+        }
+
+        // 칼로리 적정성 보너스 (200-500kcal)
+        if (totalCalories >= 200 && totalCalories <= 500) {
+          score += 5;
+        }
+
+        return { recipe, score };
+      });
+
+    // 점수 순으로 정렬하고 상위 레시피 반환
+    return recipesWithScore
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(item => item.recipe);
+
+  } catch (error) {
+    console.error('Error in getBalancedNutritionRecipes:', error);
+    return [];
+  }
+}
+
+/**
+ * [Deprecated] 기존 관련 레시피 함수 (하위 호환용, 내부적으로 getSimilarIngredientRecipes 사용)
+ */
+export async function getRelatedRecipes(
+  currentRecipe: Recipe,
+  limit: number = 6
+): Promise<Recipe[]> {
+  return getSimilarIngredientRecipes(currentRecipe, limit);
 }

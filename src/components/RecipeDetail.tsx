@@ -9,7 +9,9 @@ interface RecipeDetailProps {
   recipe: Recipe;
   onBack: () => void;
   userIngredients?: string[];
-  relatedRecipes?: Recipe[];
+  similarRecipes?: Recipe[];
+  companionRecipes?: Recipe[];
+  balancedRecipes?: Recipe[];
   onSaveUserRecipe?: (recipe: Recipe) => Promise<void>;
   onQuickSave?: (recipe: Recipe) => Promise<void>;
   onUnsave?: (recipeId: string) => Promise<void>;
@@ -20,7 +22,7 @@ interface RecipeDetailProps {
   onRecipeClick?: (recipeId: string) => void;
 }
 
-export function RecipeDetail({ recipe, onBack, userIngredients = [], relatedRecipes = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal, onSearchClick, onRecipeClick }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, onBack, userIngredients = [], similarRecipes = [], companionRecipes = [], balancedRecipes = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal, onSearchClick, onRecipeClick }: RecipeDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecipe, setEditedRecipe] = useState(recipe);
   const [safetyConsent, setSafetyConsent] = useState(false);
@@ -451,63 +453,146 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], relatedReci
         />
       )}
 
-      {/* ⭐ 관련 레시피 추천 섹션 (SEO 내부 링크 전략) */}
-      {relatedRecipes && relatedRecipes.length > 0 && (
+      {/* ⭐ 관련 레시피 추천 섹션 (3개 카테고리, SEO 내부 링크 전략) */}
+      {(similarRecipes.length > 0 || companionRecipes.length > 0 || balancedRecipes.length > 0) && (
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border-2 border-orange-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <ChefHat className="w-6 h-6 text-primary" />
-              이런 레시피는 어때요?
+              추천 레시피
             </h3>
-            <p className="text-sm text-gray-600 mb-6">
-              비슷한 재료로 만드는 다른 요리를 확인해보세요
-            </p>
 
-            <div className="grid grid-cols-2 gap-4">
-              {relatedRecipes.slice(0, 6).map((relatedRecipe) => (
-                <div
-                  key={relatedRecipe.id}
-                  onClick={() => {
-                    if (onRecipeClick) {
-                      onRecipeClick(relatedRecipe.id);
-                    } else {
-                      window.location.href = `/recipe/${relatedRecipe.id}`;
-                    }
-                  }}
-                  className="bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all cursor-pointer border border-gray-100 hover:border-orange-300"
-                >
-                  {/* 레시피 제목 */}
-                  <h4 className="font-semibold text-gray-900 text-sm mb-3 line-clamp-2 min-h-[2.5rem]">
-                    {relatedRecipe.title}
-                  </h4>
+            {/* 1️⃣ 재료가 비슷한 요리 */}
+            {similarRecipes.length > 0 && (
+              <section className="mb-8">
+                <h4 className="text-md font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  📌 재료가 비슷한 요리
+                </h4>
+                <p className="text-xs text-gray-600 mb-4">같은 재료를 활용한 다양한 레시피</p>
 
-                  {/* 재료 태그 */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {relatedRecipe.main_ingredients?.slice(0, 2).map((ingredient, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full"
-                      >
-                        {ingredient}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* 메타 정보 */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{relatedRecipe.cooking_time || 30}분</span>
+                <div className="space-y-3">
+                  {similarRecipes.map((recipeItem) => (
+                    <div
+                      key={recipeItem.id}
+                      onClick={() => {
+                        if (onRecipeClick) {
+                          onRecipeClick(recipeItem.id);
+                        } else {
+                          window.location.href = `/recipe/${recipeItem.id}`;
+                        }
+                      }}
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-100 hover:border-orange-300 flex items-center gap-3"
+                    >
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-gray-900 text-sm mb-2">
+                          {recipeItem.title}
+                        </h5>
+                        <p className="text-xs text-gray-500">
+                          {recipeItem.main_ingredients?.slice(0, 3).join(', ')}
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-gray-600 flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{recipeItem.cooking_time || 30}분</span>
+                        </div>
+                        <span className="font-medium text-primary">
+                          {recipeItem.nutrition?.calories || 0}kcal
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium text-primary">
-                        {relatedRecipe.nutrition?.calories || 0}kcal
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </section>
+            )}
+
+            {/* 2️⃣ 같이 먹으면 좋은 짝꿍 요리 */}
+            {companionRecipes.length > 0 && (
+              <section className="mb-8">
+                <h4 className="text-md font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  💕 같이 먹으면 좋은 짝꿍 요리
+                </h4>
+                <p className="text-xs text-gray-600 mb-4">곁들이면 맛과 영양이 배가되는 조합</p>
+
+                <div className="space-y-3">
+                  {companionRecipes.map((recipeItem) => (
+                    <div
+                      key={recipeItem.id}
+                      onClick={() => {
+                        if (onRecipeClick) {
+                          onRecipeClick(recipeItem.id);
+                        } else {
+                          window.location.href = `/recipe/${recipeItem.id}`;
+                        }
+                      }}
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-100 hover:border-orange-300 flex items-center gap-3"
+                    >
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-gray-900 text-sm mb-2">
+                          {recipeItem.title}
+                        </h5>
+                        <p className="text-xs text-gray-500">
+                          {recipeItem.main_ingredients?.slice(0, 3).join(', ')}
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-gray-600 flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{recipeItem.cooking_time || 30}분</span>
+                        </div>
+                        <span className="font-medium text-primary">
+                          {recipeItem.nutrition?.calories || 0}kcal
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 3️⃣ 영양 균형을 맞춘 요리 */}
+            {balancedRecipes.length > 0 && (
+              <section className="mb-6">
+                <h4 className="text-md font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  ⚖️ 영양 균형을 맞춘 요리
+                </h4>
+                <p className="text-xs text-gray-600 mb-4">단백질·탄수화물·지방 균형이 좋은 레시피</p>
+
+                <div className="space-y-3">
+                  {balancedRecipes.map((recipeItem) => (
+                    <div
+                      key={recipeItem.id}
+                      onClick={() => {
+                        if (onRecipeClick) {
+                          onRecipeClick(recipeItem.id);
+                        } else {
+                          window.location.href = `/recipe/${recipeItem.id}`;
+                        }
+                      }}
+                      className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-100 hover:border-orange-300 flex items-center gap-3"
+                    >
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-gray-900 text-sm mb-2">
+                          {recipeItem.title}
+                        </h5>
+                        <p className="text-xs text-gray-500">
+                          {recipeItem.main_ingredients?.slice(0, 3).join(', ')}
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-gray-600 flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{recipeItem.cooking_time || 30}분</span>
+                        </div>
+                        <span className="font-medium text-primary">
+                          {recipeItem.nutrition?.calories || 0}kcal
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* 더 많은 레시피 보기 버튼 */}
             {onSearchClick && (
