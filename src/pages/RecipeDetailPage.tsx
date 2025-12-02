@@ -113,6 +113,67 @@ export function RecipeDetailPage() {
     }
   }
 
+  // SEO 키워드 생성 함수
+  function generateSEOKeywords(recipe: Recipe): string[] {
+    const keywords: string[] = [];
+
+    // 1. 레시피 제목
+    keywords.push(recipe.title);
+
+    // 2. 재료 + "요리", "음식" 조합
+    recipe.main_ingredients?.forEach(ingredient => {
+      keywords.push(`${ingredient} 요리`);
+      keywords.push(`${ingredient} 음식`);
+    });
+
+    // 3. 테마태그 + "요리" 조합
+    recipe.theme_tags?.forEach(tag => {
+      keywords.push(`${tag} 요리`);
+    });
+
+    // 4. 기본 키워드
+    keywords.push('레시피', '요리법', '건강 요리', '집밥', '간단 요리');
+
+    // 5. 재료명 자체
+    if (recipe.main_ingredients) {
+      keywords.push(...recipe.main_ingredients);
+    }
+
+    // 6. 태그명 자체
+    if (recipe.theme_tags) {
+      keywords.push(...recipe.theme_tags);
+    }
+
+    return keywords;
+  }
+
+  // SEO Description 생성 함수
+  function generateEnhancedDescription(recipe: Recipe): string {
+    const ing1 = recipe.main_ingredients?.[0] || '';
+    const ing2 = recipe.main_ingredients?.[1] || '';
+    const tag = recipe.theme_tags?.[0] || '';
+
+    let description = `${recipe.title} 레시피 완벽 가이드! `;
+
+    if (ing1) {
+      description += `${ing1} 요리`;
+      if (ing2) {
+        description += `, ${ing2} 음식`;
+      }
+      description += `으로 ${recipe.cooking_time || 30}분 만에 완성`;
+    } else {
+      description += `${recipe.cooking_time || 30}분 만에 완성`;
+    }
+
+    if (tag) {
+      description += `. ${tag} 요리에 딱`;
+    }
+
+    description += `! ${recipe.nutrition?.calories || 0}kcal 건강식 조리법.`;
+
+    return description;
+  }
+
   function generateRecipeSchema(recipe: Recipe) {
     // ISO 8601 시간 형식 생성 (예: PT30M = 30분)
     const cookTimeISO = recipe.cooking_time ? `PT${recipe.cooking_time}M` : 'PT30M';
@@ -174,12 +235,7 @@ export function RecipeDetailPage() {
       // 카테고리 및 키워드
       "recipeCategory": "메인 요리",
       "recipeCuisine": "한식",
-      "keywords": [
-        recipe.title,
-        ...(recipe.main_ingredients || []),
-        ...(recipe.theme_tags || []),
-        "레시피", "요리법", "건강 요리"
-      ].join(', '),
+      "keywords": generateSEOKeywords(recipe).join(', '),
 
       // 작성자 정보
       "author": {
@@ -316,7 +372,7 @@ export function RecipeDetailPage() {
         {/* ⭐ SEO 최적화된 Meta Description (120-155자, 타겟 키워드 포함) */}
         <meta
           name="description"
-          content={`${recipe.title} 레시피 완벽 가이드! ${recipe.main_ingredients?.slice(0, 3).join(', ') || ''}로 만드는 ${recipe.cooking_time || 30}분 ${recipe.nutrition?.calories || 0}kcal 건강 요리. 상세한 조리법과 영양 정보를 확인하세요.`}
+          content={generateEnhancedDescription(recipe)}
         />
 
         {/* ⭐ Canonical URL (중복 콘텐츠 방지) */}
@@ -325,7 +381,7 @@ export function RecipeDetailPage() {
         {/* ⭐ Keywords (보조적) */}
         <meta
           name="keywords"
-          content={`${recipe.title}, ${recipe.main_ingredients?.join(', ') || ''}, 레시피, 요리법, 건강 요리, ${recipe.theme_tags?.join(', ') || ''}`}
+          content={generateSEOKeywords(recipe).join(', ')}
         />
 
         {/* ⭐ Author */}
@@ -335,7 +391,7 @@ export function RecipeDetailPage() {
         <meta property="og:title" content={`${recipe.title || '레시피'} - 오늘의냉장고`} />
         <meta
           property="og:description"
-          content={`${recipe.title} 레시피! ${recipe.main_ingredients?.join(', ') || ''}로 만드는 ${recipe.cooking_time || 30}분 요리`}
+          content={generateEnhancedDescription(recipe)}
         />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://www.oneulfridge.com/recipe/${recipe.id}`} />
@@ -353,7 +409,7 @@ export function RecipeDetailPage() {
         <meta name="twitter:title" content={`${recipe.title || '레시피'} - 오늘의냉장고`} />
         <meta
           name="twitter:description"
-          content={`${recipe.title} 레시피! ${recipe.main_ingredients?.join(', ') || ''}로 만드는 건강 요리`}
+          content={generateEnhancedDescription(recipe)}
         />
       </Helmet>
 
