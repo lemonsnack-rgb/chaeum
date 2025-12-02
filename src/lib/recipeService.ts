@@ -828,3 +828,105 @@ export async function getRecipeById(recipeId: string): Promise<Recipe | null> {
 
   return null;
 }
+
+/**
+ * 관련 레시피 추천 (같은 재료 또는 테마 기반)
+ * @param currentRecipe 현재 레시피
+ * @param limit 반환할 레시피 수 (기본값: 6)
+ */
+export async function getRelatedRecipes(
+  currentRecipe: Recipe,
+  limit: number = 6
+): Promise<Recipe[]> {
+  if (!supabase || !currentRecipe) {
+    return [];
+  }
+
+  try {
+    // 1단계: 같은 main_ingredients를 가진 레시피 찾기
+    const mainIngredients = currentRecipe.main_ingredients || [];
+    const themeTags = currentRecipe.theme_tags || [];
+
+    if (mainIngredients.length === 0 && themeTags.length === 0) {
+      // 재료와 테마가 모두 없으면 최근 레시피 반환
+      const { data, error } = await supabase
+        .from('generated_recipes')
+        .select('*')
+        .neq('id', currentRecipe.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching related recipes:', error);
+        return [];
+      }
+
+      return (data || []).map(databaseToRecipe);
+    }
+
+    // 2단계: 재료 또는 테마가 겹치는 레시피 찾기
+    const { data, error } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .neq('id', currentRecipe.id)
+      .or(
+        mainIngredients.length > 0
+          ? `main_ingredients.ov.{${mainIngredients.join(',')}}${themeTags.length > 0 ? `,theme_tags.ov.{${themeTags.join(',')}}` : ''}`
+          : `theme_tags.ov.{${themeTags.join(',')}}`
+      )
+      .order('created_at', { ascending: false })
+      .limit(limit * 2); // 더 많이 가져와서 필터링
+
+    if (error) {
+      console.error('Error fetching related recipes:', error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      // 관련 레시피가 없으면 최근 레시피 반환
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('generated_recipes')
+        .select('*')
+        .neq('id', currentRecipe.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (fallbackError) {
+        console.error('Error fetching fallback recipes:', error);
+        return [];
+      }
+
+      return (fallbackData || []).map(databaseToRecipe);
+    }
+
+    // 3단계: 관련도 점수 계산 및 정렬
+    const recipesWithScore = data.map((dbRecipe) => {
+      const recipe = databaseToRecipe(dbRecipe);
+      let score = 0;
+
+      // 같은 재료 개수만큼 점수 추가
+      const commonIngredients = (recipe.main_ingredients || []).filter(ing =>
+        mainIngredients.includes(ing)
+      );
+      score += commonIngredients.length * 3;
+
+      // 같은 테마 태그 개수만큼 점수 추가
+      const commonTags = (recipe.theme_tags || []).filter(tag =>
+        themeTags.includes(tag)
+      );
+      score += commonTags.length * 2;
+
+      return { recipe, score };
+    });
+
+    // 점수가 높은 순으로 정렬하고 limit만큼 반환
+    return recipesWithScore
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(item => item.recipe);
+
+  } catch (error) {
+    console.error('Error in getRelatedRecipes:', error);
+    return [];
+  }
+}

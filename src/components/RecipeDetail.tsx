@@ -9,6 +9,7 @@ interface RecipeDetailProps {
   recipe: Recipe;
   onBack: () => void;
   userIngredients?: string[];
+  relatedRecipes?: Recipe[];
   onSaveUserRecipe?: (recipe: Recipe) => Promise<void>;
   onQuickSave?: (recipe: Recipe) => Promise<void>;
   onUnsave?: (recipeId: string) => Promise<void>;
@@ -16,9 +17,10 @@ interface RecipeDetailProps {
   isAuthenticated?: boolean;
   onShowAuthModal?: () => void;
   onSearchClick?: () => void;
+  onRecipeClick?: (recipeId: string) => void;
 }
 
-export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal, onSearchClick }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, onBack, userIngredients = [], relatedRecipes = [], onSaveUserRecipe, onQuickSave, onUnsave, isReadOnly = false, isAuthenticated = false, onShowAuthModal, onSearchClick, onRecipeClick }: RecipeDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRecipe, setEditedRecipe] = useState(recipe);
   const [safetyConsent, setSafetyConsent] = useState(false);
@@ -447,6 +449,78 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], onSaveUserR
           isAuthenticated={isAuthenticated}
           onLoginRequired={() => onShowAuthModal?.()}
         />
+      )}
+
+      {/* ⭐ 관련 레시피 추천 섹션 (SEO 내부 링크 전략) */}
+      {relatedRecipes && relatedRecipes.length > 0 && (
+        <div className="max-w-md mx-auto px-4 py-6">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border-2 border-orange-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <ChefHat className="w-6 h-6 text-primary" />
+              이런 레시피는 어때요?
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              비슷한 재료로 만드는 다른 요리를 확인해보세요
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              {relatedRecipes.slice(0, 6).map((relatedRecipe) => (
+                <div
+                  key={relatedRecipe.id}
+                  onClick={() => {
+                    if (onRecipeClick) {
+                      onRecipeClick(relatedRecipe.id);
+                    } else {
+                      window.location.href = `/recipe/${relatedRecipe.id}`;
+                    }
+                  }}
+                  className="bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all cursor-pointer border border-gray-100 hover:border-orange-300"
+                >
+                  {/* 레시피 제목 */}
+                  <h4 className="font-semibold text-gray-900 text-sm mb-3 line-clamp-2 min-h-[2.5rem]">
+                    {relatedRecipe.title}
+                  </h4>
+
+                  {/* 재료 태그 */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {relatedRecipe.main_ingredients?.slice(0, 2).map((ingredient, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full"
+                      >
+                        {ingredient}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* 메타 정보 */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>{relatedRecipe.cooking_time || 30}분</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-primary">
+                        {relatedRecipe.nutrition?.calories || 0}kcal
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 더 많은 레시피 보기 버튼 */}
+            {onSearchClick && (
+              <button
+                onClick={onSearchClick}
+                className="w-full mt-4 py-3 bg-white text-primary font-semibold rounded-xl hover:bg-orange-50 transition-colors flex items-center justify-center gap-2 border-2 border-primary"
+              >
+                <Search className="w-4 h-4" />
+                더 많은 레시피 보기
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Floating 저장 버튼 */}
