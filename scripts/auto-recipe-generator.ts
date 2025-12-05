@@ -161,7 +161,7 @@ async function searchUnsplashImage(recipeTitle: string, mainIngredients: string[
   }
 
   try {
-    // 검색어 생성 전략
+    // 검색어 생성 전략 - 키워드 매핑
     const foodNameMap: Record<string, string> = {
       '김치찌개': 'kimchi jjigae korean stew',
       '된장찌개': 'doenjang jjigae korean stew',
@@ -173,10 +173,43 @@ async function searchUnsplashImage(recipeTitle: string, mainIngredients: string[
       '잡채': 'japchae korean noodles',
       '닭갈비': 'dakgalbi korean chicken',
       '순두부찌개': 'sundubu jjigae korean tofu stew',
+      '파스타': 'pasta',
+      '까르보나라': 'carbonara pasta',
+      '알리오': 'aglio olio pasta',
+      '페투치네': 'fettuccine pasta',
+      '알프레도': 'alfredo pasta',
+      '스파게티': 'spaghetti',
+      '라멘': 'ramen',
+      '짬뽕': 'jjamppong spicy seafood noodle',
+      '쌀국수': 'pho vietnamese noodle',
+      '팟타이': 'pad thai',
+      '야키소바': 'yakisoba japanese noodle',
+      '탄탄면': 'dan dan noodles',
+      '볶음면': 'stir fried noodles',
+      '비빔국수': 'bibim guksu korean noodle',
+      '잔치국수': 'janchi guksu korean noodle soup',
+      '분짜': 'bun cha vietnamese',
     };
 
-    const cleanTitle = recipeTitle.replace(/\s*(레시피|만들기|요리)\s*/g, '').trim();
-    const searchQuery = foodNameMap[cleanTitle] || `${cleanTitle} korean food`;
+    // 제목에서 불필요한 수식어 제거
+    let cleanTitle = recipeTitle
+      .replace(/\s*(레시피|만들기|요리|간편|버전|\(.*?\)|속|편한|맛있는|간단한|쉬운|매콤|달콤|고소한|부드러운|칼칼한|시원한)\s*/g, '')
+      .trim();
+
+    // 매핑된 키워드 찾기
+    let searchQuery = '';
+    for (const [key, value] of Object.entries(foodNameMap)) {
+      if (cleanTitle.includes(key)) {
+        searchQuery = value;
+        break;
+      }
+    }
+
+    // 매핑 못 찾으면 첫 2단어만 사용 + "food"
+    if (!searchQuery) {
+      const words = cleanTitle.split(/\s+/).slice(0, 2).join(' ');
+      searchQuery = `${words} food`;
+    }
 
     console.log(`   🔍 Unsplash 검색: "${searchQuery}"`);
 
