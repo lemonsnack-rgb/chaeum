@@ -67,7 +67,7 @@ export const RECIPE_JSON_SCHEMA_TEMPLATE = `{
     "substitutions": "대체 재료 및 선택 이유 (알레르기 대응)"
   },
   "theme_tags": ["한식", "비오는날", "파티"],
-  "main_ingredients": ["정렬된 주요 재료명 리스트 (캠싱 키로 사용)"],
+  "main_ingredients": ["돼지고기", "김치", "두부"],
   "chef_tips": [
     "멸치를 미리 볶으면 비린내가 사라져요",
     "마지막에 참기름 한 방울이 고소함을 더해줘요",

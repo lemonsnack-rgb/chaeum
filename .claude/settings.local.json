@@ -35,7 +35,9 @@
       "Bash(npm run generate-sitemap:*)",
       "Bash(npx tsx:*)",
       "Bash(git push:*)",
-      "Bash(psql \"$VITE_SUPABASE_URL\" -c \"\\d generated_recipes\")"
+      "Bash(psql \"$VITE_SUPABASE_URL\" -c \"\\d generated_recipes\")",
+      "Bash(npm run generate-recipe:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []
