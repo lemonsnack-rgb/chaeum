@@ -2,7 +2,7 @@ name: Update Existing Recipes
 
 on:
   schedule:
-    # 매일 오전 3시 (KST 12시)에 실행 - 하루 50개 업데이트
+    # 매일 오전 3시 (KST 12시)에 실행 - 하루 20개 업데이트 (rate limit 안전)
     - cron: '0 18 * * *'
 
   # 수동 실행 가능
@@ -11,7 +11,7 @@ on:
       batch_size:
         description: '업데이트할 레시피 개수'
         required: false
-        default: '50'
+        default: '20'
 
   # 외부 cron 서비스에서 트리거
   repository_dispatch:
@@ -44,7 +44,7 @@ jobs:
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          UPDATE_BATCH_SIZE: ${{ github.event.inputs.batch_size || '50' }}
+          UPDATE_BATCH_SIZE: ${{ github.event.inputs.batch_size || '20' }}
 
       - name: Update existing recipes
         env:
@@ -52,7 +52,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.VITE_UNSPLASH_ACCESS_KEY }}
-          UPDATE_BATCH_SIZE: ${{ github.event.inputs.batch_size || '50' }}
+          UPDATE_BATCH_SIZE: ${{ github.event.inputs.batch_size || '20' }}
         run: npm run update-recipes
 
       - name: Notify success

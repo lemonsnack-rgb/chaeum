@@ -101,7 +101,7 @@ ${description ? `- 설명: ${description}` : ''}
 // 블로그 콘텐츠 생성
 async function generateBlogContent(recipeTitle: string, mainIngredients: string[], description: string = ''): Promise<BlogContent | null> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = generateBlogContentPrompt(recipeTitle, mainIngredients, description);
 
     console.log('   📨 Gemini API 호출 중...');
@@ -137,7 +137,7 @@ async function generateBlogContent(recipeTitle: string, mainIngredients: string[
 
 // 메인 함수
 async function updateExistingRecipes() {
-  const BATCH_SIZE = parseInt(process.env.UPDATE_BATCH_SIZE || '50'); // 기본 50개, 환경변수로 조정 가능
+  const BATCH_SIZE = parseInt(process.env.UPDATE_BATCH_SIZE || '20'); // 기본 20개 (rate limit 안전), 환경변수로 조정 가능
 
   console.log('🔄 기존 레시피 업데이트 시작...');
   console.log(`📊 배치 크기: ${BATCH_SIZE}개\n`);
@@ -209,8 +209,8 @@ async function updateExistingRecipes() {
       console.log(`   - 보관 정보: ${blogContent.storage_info.refrigerator_days}일 (냉장)`);
       successCount++;
 
-      // API 요청 제한 방지를 위한 딜레이 (1초)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // API 요청 제한 방지를 위한 딜레이 (3초 - rate limit 안전)
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
     // 전체 통계
