@@ -1,20 +1,24 @@
-name: Auto Generate Recipe
+name: Update Existing Recipes
 
 on:
   schedule:
-    # 매일 1회 실행 (오전 6시 KST, UTC 21시)
-    # 신규 레시피 생성 주기 감소 (기존 업데이트 우선)
-    - cron: '0 21 * * *'
+    # 매일 오전 3시 (KST 12시)에 실행 - 하루 50개 업데이트
+    - cron: '0 18 * * *'
 
   # 수동 실행 가능
   workflow_dispatch:
+    inputs:
+      batch_size:
+        description: '업데이트할 레시피 개수'
+        required: false
+        default: '50'
 
   # 외부 cron 서비스에서 트리거
   repository_dispatch:
-    types: [generate-recipe]
+    types: [update-recipes]
 
 jobs:
-  generate:
+  update:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,24 +39,28 @@ jobs:
           echo "VITE_GEMINI_API_KEY: ${VITE_GEMINI_API_KEY:0:10}..."
           echo "VITE_SUPABASE_URL: $VITE_SUPABASE_URL"
           echo "VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:0:10}..."
+          echo "UPDATE_BATCH_SIZE: $UPDATE_BATCH_SIZE"
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          UPDATE_BATCH_SIZE: ${{ github.event.inputs.batch_size || '50' }}
 
-      - name: Generate recipe
+      - name: Update existing recipes
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        run: npm run generate-recipe
+          VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.VITE_UNSPLASH_ACCESS_KEY }}
+          UPDATE_BATCH_SIZE: ${{ github.event.inputs.batch_size || '50' }}
+        run: npm run update-recipes
 
       - name: Notify success
         if: success()
         run: |
-          echo "✅ Recipe generated successfully!"
+          echo "✅ Recipes updated successfully!"
 
       - name: Notify failure
         if: failure()
         run: |
-          echo "❌ Recipe generation failed!"
+          echo "❌ Recipe update failed!"

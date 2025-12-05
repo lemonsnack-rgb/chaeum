@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "generate-recipe": "tsx scripts/auto-recipe-generator.ts",
+    "update-recipes": "tsx scripts/update-existing-recipes.ts",
     "generate-sitemap": "tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
