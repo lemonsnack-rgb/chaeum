@@ -20,6 +20,18 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
 
+// 블로그 스타일 필드 인터페이스
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface StorageInfo {
+  refrigerator_days?: number;
+  freezer_days?: number;
+  reheating_tip?: string;
+}
+
 // 기존 코드와 동일한 인터페이스
 interface Recipe {
   id: string;
@@ -37,6 +49,12 @@ interface Recipe {
   created_at: string;
   image_url?: string;
   image_photographer?: string;
+
+  // ===== 블로그 스타일 필드 (NEW) =====
+  chef_tips?: string[];
+  faq?: FAQ[];
+  storage_info?: StorageInfo;
+  pairing_suggestions?: string;
 }
 
 interface DatabaseRecipe {
@@ -61,6 +79,12 @@ interface DatabaseRecipe {
   created_at: string;
   image_url?: string;
   image_photographer?: string;
+
+  // 블로그 스타일 필드
+  chef_tips?: string[];
+  faq?: FAQ[];
+  storage_info?: StorageInfo;
+  pairing_suggestions?: string;
 }
 
 interface RecipeMeta {
@@ -118,6 +142,12 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
     created_at: recipe.created_at,
     image_url: recipe.image_url,
     image_photographer: recipe.image_photographer,
+
+    // 블로그 스타일 필드
+    chef_tips: recipe.chef_tips,
+    faq: recipe.faq,
+    storage_info: recipe.storage_info,
+    pairing_suggestions: recipe.pairing_suggestions,
   };
 }
 
@@ -200,7 +230,7 @@ interface GenerationResult {
 }
 
 async function generateRecipesForTheme(
-  mainIngredient: { name: string; priority: string; category: string },
+  mainIngredient: { name: string; priority: number; category: string },
   theme: string,
   count: number
 ): Promise<GenerationResult> {
@@ -292,6 +322,12 @@ async function generateRecipesForTheme(
       cooking_time: recipeData.meta?.cooking_time_min || 30,
       servings: servings,
       created_at: new Date().toISOString(),
+
+      // 블로그 스타일 필드 (NEW)
+      chef_tips: Array.isArray(recipeData.chef_tips) ? recipeData.chef_tips : undefined,
+      faq: Array.isArray(recipeData.faq) ? recipeData.faq : undefined,
+      storage_info: recipeData.storage_info || undefined,
+      pairing_suggestions: recipeData.pairing_suggestions || undefined,
     };
 
     console.log(`📝 [${i + 1}] "${newRecipe.title}"`);
@@ -365,7 +401,7 @@ async function generateRecipesForTheme(
 
 async function generateRecipe() {
   console.log('🤖 레시피 자동 생성 시작... [' + new Date().toLocaleString('ko-KR') + ']');
-  console.log('📊 목표: 자유 테마 5개 + 랜덤 테마 5개 = 총 10개 레시피 생성\n');
+  console.log('📊 목표: 다양한 레시피 10개 생성 (테마 제약 없음)\n');
 
   try {
     // Step 1: 최근 생성된 재료 조회 (중복 방지)
@@ -392,57 +428,23 @@ async function generateRecipe() {
     const mainIngredient = selectRandomIngredient(uniqueRecent);
     console.log(`📦 선택된 메인 재료: ${mainIngredient.name} (우선순위: ${mainIngredient.priority}, 카테고리: ${mainIngredient.category})`);
 
-    // Step 3: 자유 테마로 5개 생성 (다양한 레시피 확보)
+    // Step 3: 자유 테마로 10개 생성 (다양성 극대화)
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📍 Phase 1: 자유 테마 레시피 생성 (5개)');
+    console.log('📍 다양한 레시피 생성 중... (10개)');
+    console.log('   테마 제약 없이 AI가 자유롭게 다양한 레시피 생성');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    const themeResults: GenerationResult[] = [];
-    const freeThemeResult = await generateRecipesForTheme(mainIngredient, '', 5);
-    themeResults.push(freeThemeResult);
+    const result = await generateRecipesForTheme(mainIngredient, '', 10);
 
-    // Step 4: 랜덤 테마로 5개 생성
-    const ALL_THEMES = ['간편식', '다이어트', '10분 요리', '채식', '캠핑', '술안주', '야식', '도시락'];
-
-    // 랜덤하게 5개 테마 선택 (중복 없이)
-    const shuffled = [...ALL_THEMES].sort(() => Math.random() - 0.5);
-    const selectedThemes = shuffled.slice(0, 5);
-
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📍 Phase 2: 랜덤 테마 레시피 생성 (5개)');
-    console.log(`🎲 선택된 테마: ${selectedThemes.join(', ')}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    for (const theme of selectedThemes) {
-      const result = await generateRecipesForTheme(mainIngredient, theme, 1);
-      themeResults.push(result);
-    }
-
-    // 전체 통계 계산
-    const totalStats = themeResults.reduce(
-      (acc, curr) => ({
-        success: acc.success + curr.success,
-        skipped: acc.skipped + curr.skipped,
-        failed: acc.failed + curr.failed,
-        total: acc.total + curr.total
-      }),
-      { success: 0, skipped: 0, failed: 0, total: 0 }
-    );
-
+    // 전체 통계
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🎉 레시피 자동 생성 완료!');
     console.log(`📌 메인 재료: ${mainIngredient.name}`);
     console.log(`\n📊 전체 통계:`);
-    console.log(`   총 생성: ${totalStats.total}개`);
-    console.log(`   ✅ 성공: ${totalStats.success}개`);
-    console.log(`   ⏭️  중복: ${totalStats.skipped}개`);
-    console.log(`   ❌ 실패: ${totalStats.failed}개`);
-    console.log('\n📋 테마별 상세:');
-    console.log(`   1. 자유 테마: 성공 ${freeThemeResult.success}/${freeThemeResult.total}`);
-    selectedThemes.forEach((theme, idx) => {
-      const result = themeResults[idx + 1];
-      console.log(`   ${idx + 2}. ${theme}: 성공 ${result.success}/${result.total}`);
-    });
+    console.log(`   총 생성: ${result.total}개`);
+    console.log(`   ✅ 성공: ${result.success}개`);
+    console.log(`   ⏭️  중복: ${result.skipped}개`);
+    console.log(`   ❌ 실패: ${result.failed}개`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   } catch (error: any) {

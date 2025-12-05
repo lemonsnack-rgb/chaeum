@@ -461,7 +461,7 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], similarReci
             </section>
 
             {displayRecipe.deep_info.tips && displayRecipe.deep_info.tips.length > 0 && (
-              <section>
+              <section className="mb-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span className="w-2 h-6 bg-primary rounded-full"></span>
                   조리 팁
@@ -473,6 +473,93 @@ export function RecipeDetail({ recipe, onBack, userIngredients = [], similarReci
                       <p className="text-gray-700 leading-relaxed">{tip}</p>
                     </div>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {/* 셰프의 시크릿 팁 */}
+            {displayRecipe.chef_tips && displayRecipe.chef_tips.length > 0 && (
+              <section className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-6 bg-primary rounded-full"></span>
+                  셰프의 시크릿 팁
+                </h3>
+                <div className="space-y-3">
+                  {displayRecipe.chef_tips.map((tip, idx) => (
+                    <div key={idx} className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-l-4 border-yellow-400 p-4 rounded-xl shadow-sm">
+                      <p className="text-gray-700 leading-relaxed">
+                        <span className="font-bold text-gray-900">Tip {idx + 1}.</span> {tip}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 보관 및 재가열 */}
+            {displayRecipe.storage_info && (
+              <section className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-6 bg-primary rounded-full"></span>
+                  보관 및 맛있게 먹는 법
+                </h3>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl shadow-sm border-2 border-blue-200">
+                  <ul className="space-y-2 text-gray-700">
+                    {displayRecipe.storage_info.refrigerator_days && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-1">❄️</span>
+                        <span>
+                          <strong>냉장 보관:</strong> {displayRecipe.storage_info.refrigerator_days}일
+                          {displayRecipe.storage_info.freezer_days && `, 냉동 보관: ${displayRecipe.storage_info.freezer_days}일`}
+                        </span>
+                      </li>
+                    )}
+                    {displayRecipe.storage_info.reheating_tip && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-1">♨️</span>
+                        <span>
+                          <strong>재가열 팁:</strong> {displayRecipe.storage_info.reheating_tip}
+                        </span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </section>
+            )}
+
+            {/* FAQ */}
+            {displayRecipe.faq && displayRecipe.faq.length > 0 && (
+              <section className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-6 bg-primary rounded-full"></span>
+                  자주 묻는 질문
+                </h3>
+                <div className="space-y-4">
+                  {displayRecipe.faq.map((item, idx) => (
+                    <div key={idx} className="border-l-4 border-primary p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl shadow-sm">
+                      <p className="font-bold text-gray-900 mb-2 flex items-start gap-2">
+                        <span className="text-primary">Q.</span>
+                        {item.question}
+                      </p>
+                      <p className="text-gray-700 leading-relaxed flex items-start gap-2 ml-6">
+                        <span className="text-primary font-semibold">A.</span>
+                        {item.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 페어링 추천 */}
+            {displayRecipe.pairing_suggestions && (
+              <section className="mb-6">
+                <div className="bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50 p-5 rounded-xl border-2 border-pink-300 shadow-md">
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <span className="text-xl">🍷</span>
+                    페어링 추천
+                  </h4>
+                  <p className="text-gray-700 leading-relaxed">{displayRecipe.pairing_suggestions}</p>
                 </div>
               </section>
             )}

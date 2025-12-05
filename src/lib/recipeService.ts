@@ -2,6 +2,19 @@ import { supabase } from './supabase';
 import { genAI } from './gemini';
 import { generateRecipePrompt } from '../ai/recipe_generation_prompt';
 
+// FAQ 인터페이스
+export interface FAQ {
+  question: string;
+  answer: string;
+}
+
+// 보관 정보 인터페이스
+export interface StorageInfo {
+  refrigerator_days?: number; // 냉장 보관 일수
+  freezer_days?: number; // 냉동 보관 일수
+  reheating_tip?: string; // 재가열 팁
+}
+
 // 코드에서 사용하는 Recipe 인터페이스 (기존 유지)
 export interface Recipe {
   id: string;
@@ -19,6 +32,12 @@ export interface Recipe {
   created_at: string;
   image_url?: string; // Unsplash 이미지 URL
   image_photographer?: string; // 사진작가 이름 (크레딧)
+
+  // ===== 블로그 스타일 필드 (NEW) =====
+  chef_tips?: string[]; // 셰프의 시크릿 팁
+  faq?: FAQ[]; // 자주 묻는 질문
+  storage_info?: StorageInfo; // 보관 및 재가열 정보
+  pairing_suggestions?: string; // 함께 먹으면 좋은 음식
 }
 
 // 실제 DB에 저장되는 구조
@@ -44,6 +63,12 @@ interface DatabaseRecipe {
   created_at: string;
   image_url?: string; // Unsplash 이미지 URL
   image_photographer?: string; // 사진작가 이름
+
+  // 블로그 스타일 필드
+  chef_tips?: string[];
+  faq?: FAQ[];
+  storage_info?: StorageInfo;
+  pairing_suggestions?: string;
 }
 
 export interface RecipeMeta {
@@ -101,6 +126,10 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
     created_at: recipe.created_at,
     image_url: recipe.image_url,
     image_photographer: recipe.image_photographer,
+    chef_tips: recipe.chef_tips,
+    faq: recipe.faq,
+    storage_info: recipe.storage_info,
+    pairing_suggestions: recipe.pairing_suggestions,
   };
 }
 
@@ -135,6 +164,10 @@ function databaseToRecipe(dbRecipe: any): Recipe {
     created_at: dbRecipe.created_at,
     image_url: dbRecipe.image_url,
     image_photographer: dbRecipe.image_photographer,
+    chef_tips: dbRecipe.chef_tips,
+    faq: dbRecipe.faq,
+    storage_info: dbRecipe.storage_info,
+    pairing_suggestions: dbRecipe.pairing_suggestions,
   };
 }
 

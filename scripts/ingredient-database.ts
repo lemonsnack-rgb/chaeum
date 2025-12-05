@@ -121,6 +121,25 @@ export const INGREDIENT_DATABASE: Ingredient[] = [
   { name: '바질', category: 'seasoning', searchVolume: 'low', priority: 5 },
   { name: '로즈마리', category: 'seasoning', searchVolume: 'low', priority: 5 },
   { name: '파슬리', category: 'seasoning', searchVolume: 'low', priority: 5 },
+
+  // === 세계 요리 재료 (다양성 개선) ===
+  { name: '파스타면', category: 'other', searchVolume: 'high', priority: 8 },
+  { name: '모짜렐라 치즈', category: 'other', searchVolume: 'medium', priority: 7 },
+  { name: '양배추', category: 'vegetable', searchVolume: 'high', priority: 9 },
+  { name: '셀러리', category: 'vegetable', searchVolume: 'medium', priority: 6 },
+  { name: '아보카도', category: 'vegetable', searchVolume: 'medium', priority: 7 },
+  { name: '타코쉘', category: 'other', searchVolume: 'low', priority: 5 },
+  { name: '또띠아', category: 'other', searchVolume: 'low', priority: 5 },
+  { name: '리코타 치즈', category: 'other', searchVolume: 'low', priority: 5 },
+  { name: '파르메산 치즈', category: 'other', searchVolume: 'medium', priority: 7 },
+  { name: '사워크림', category: 'other', searchVolume: 'low', priority: 5 },
+  { name: '또르띠야', category: 'other', searchVolume: 'low', priority: 5 },
+  { name: '고추냉이', category: 'seasoning', searchVolume: 'low', priority: 5 },
+  { name: '와사비', category: 'seasoning', searchVolume: 'low', priority: 5 },
+  { name: '타바스코', category: 'seasoning', searchVolume: 'low', priority: 4 },
+  { name: '케첩', category: 'seasoning', searchVolume: 'high', priority: 8 },
+  { name: '마요네즈', category: 'seasoning', searchVolume: 'high', priority: 8 },
+  { name: '머스타드', category: 'seasoning', searchVolume: 'medium', priority: 6 },
 ];
 
 // 우선순위 기반 가중치 랜덤 선택
