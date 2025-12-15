@@ -2,8 +2,9 @@ name: Update Existing Recipes
 
 on:
   schedule:
-    # 매일 오전 3시 (KST 12시)에 실행 - 하루 20개 업데이트 (rate limit 안전)
-    - cron: '0 18 * * *'
+    # 5분마다 실행 (GitHub Actions 최소 간격)
+    # 무료 티어: 5분당 1개 기존 레시피 업데이트
+    - cron: '*/5 * * * *'
 
   # 수동 실행 가능
   workflow_dispatch:

@@ -2,9 +2,9 @@ name: Auto Generate Recipe
 
 on:
   schedule:
-    # 매시간 실행 (정각마다)
-    # 무료 티어: 시간당 1개 신규 레시피 생성
-    - cron: '0 * * * *'
+    # 5분마다 실행 (GitHub Actions 최소 간격)
+    # 무료 티어: 5분당 1개 신규 레시피 생성
+    - cron: '*/5 * * * *'
 
   # 수동 실행 가능
   workflow_dispatch:
@@ -12,6 +12,8 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
