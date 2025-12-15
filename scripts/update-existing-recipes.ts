@@ -2,18 +2,30 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 환경 변수 체크
-if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY || !process.env.VITE_GEMINI_API_KEY || !process.env.VITE_UNSPLASH_ACCESS_KEY) {
+if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_GEMINI_API_KEY || !process.env.VITE_UNSPLASH_ACCESS_KEY) {
   console.error('❌ 필수 환경 변수가 설정되지 않았습니다:');
   console.error('  - VITE_SUPABASE_URL');
-  console.error('  - VITE_SUPABASE_ANON_KEY');
   console.error('  - VITE_GEMINI_API_KEY');
   console.error('  - VITE_UNSPLASH_ACCESS_KEY');
   process.exit(1);
 }
 
+// SERVICE_ROLE_KEY 또는 ANON_KEY 사용 (SERVICE_ROLE_KEY 우선)
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+if (!supabaseKey) {
+  console.error('❌ SUPABASE_SERVICE_ROLE_KEY 또는 VITE_SUPABASE_ANON_KEY 중 하나가 필요합니다.');
+  process.exit(1);
+}
+
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
-  process.env.VITE_SUPABASE_ANON_KEY!
+  supabaseKey,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
 );
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
