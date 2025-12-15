@@ -105,7 +105,7 @@ ${description ? `- 설명: ${description}` : ''}
 // 블로그 콘텐츠 생성
 async function generateBlogContent(recipeTitle: string, mainIngredients: string[], description: string = ''): Promise<BlogContent | null> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     const prompt = generateBlogContentPrompt(recipeTitle, mainIngredients, description);
 
     console.log('   📨 Gemini API 호출 중...');
