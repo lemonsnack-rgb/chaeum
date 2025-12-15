@@ -151,52 +151,99 @@ async function generateBlogContent(recipeTitle: string, mainIngredients: string[
   }
 }
 
+// 이미지 연관성 검증
+async function verifyImageRelevance(
+  recipeTitle: string,
+  imageDescription: string,
+  searchQuery: string
+): Promise<boolean> {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const prompt = `당신은 이미지 연관성 검증 전문가입니다.
+
+**요리명:** ${recipeTitle}
+**검색어:** ${searchQuery}
+**이미지 설명:** ${imageDescription || '(설명 없음)'}
+
+위 이미지가 요리와 연관성이 있는지 판단하세요.
+
+**판단 기준:**
+1. 이미지 설명에 요리 관련 키워드가 포함되어 있는가?
+2. 음식/요리 사진인가? (재료만 있는 사진, 식당 외관, 사람 등은 제외)
+3. 검색어와 이미지 설명의 의미가 일치하는가?
+
+**이미지 설명이 없는 경우:** 검색어에 음식 키워드가 포함되어 있으면 허용
+
+**출력:** "YES" 또는 "NO" (한 단어만)`;
+
+    const result = await model.generateContent(prompt);
+    const answer = result.response.text().trim().toUpperCase();
+
+    return answer.includes('YES');
+  } catch (error: any) {
+    console.error(`   ⚠️  연관성 검증 실패: ${error.message}`);
+    // 폴백: 이미지 설명이 없으면 허용 (Unsplash는 음식 사진이 많음)
+    return !imageDescription || imageDescription.length < 10;
+  }
+}
+
+// AI 기반 이미지 검색어 생성
+async function generateImageSearchQuery(recipeTitle: string): Promise<string> {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const prompt = `당신은 음식 사진 검색 전문가입니다.
+
+요리명: "${recipeTitle}"
+
+위 요리의 **정확한 영어 명칭**을 포함한 검색어를 생성하세요.
+
+**핵심 규칙 (필수):**
+1. **요리 명칭을 반드시 포함** - 요리의 핵심 명칭이 검색어에 들어가야 함
+2. 한국 요리: 정확한 로마자 표기 + "korean" 필수 (예: kimchi jjigae korean, bulgogi korean bbq)
+3. 서양 요리: 정확한 요리 명칭 + 특징 (예: carbonara pasta, grilled salmon)
+4. 일본/중국 요리: 원어 로마자 + 국가명 (예: ramen japanese, mapo tofu chinese)
+5. 3-5단어로 구성 (너무 길면 검색 정확도 하락)
+
+**금지 사항:**
+- 추상적인 단어만 사용 (예: "delicious food", "asian dish" 금지)
+- 요리 명칭 없이 재료만 나열 (예: "chicken vegetables rice" 금지)
+
+**출력 형식:** 검색어만 출력 (설명/기호 없이)
+
+예시:
+- "김치찌개" → kimchi jjigae stew korean
+- "까르보나라 파스타" → carbonara pasta creamy
+- "소고기 덮밥" → beef donburi rice bowl japanese
+- "매운 닭발" → dakbal spicy chicken feet korean
+- "연어 그릴" → grilled salmon fillet
+- "토마토 파스타" → tomato pasta spaghetti italian
+- "된장찌개" → doenjang jjigae korean stew`;
+
+    const result = await model.generateContent(prompt);
+    const searchQuery = result.response.text().trim().toLowerCase();
+
+    // 불필요한 문장 제거 (설명이 포함된 경우)
+    const cleanQuery = searchQuery.split('\n')[0].replace(/^(검색어:|출력:|query:)/i, '').trim();
+
+    return cleanQuery;
+  } catch (error: any) {
+    console.error(`   ⚠️  AI 검색어 생성 실패: ${error.message}`);
+    // 폴백: 기본 검색어 생성
+    const words = recipeTitle.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').split(/\s+/).slice(0, 2).join(' ');
+    return `${words} food`;
+  }
+}
+
 // Unsplash 이미지 검색
 async function searchUnsplashImage(recipeTitle: string): Promise<{ url: string; photographer: string } | null> {
   try {
-    // 한글 요리명 → 영어 검색어 매핑
-    const foodNameMap: Record<string, string> = {
-      '김치찌개': 'kimchi stew korean',
-      '된장찌개': 'doenjang stew korean',
-      '불고기': 'bulgogi korean bbq',
-      '비빔밥': 'bibimbap korean rice',
-      '잡채': 'japchae korean noodles',
-      '삼겹살': 'samgyeopsal korean pork',
-      '떡볶이': 'tteokbokki korean rice cake',
-      '김밥': 'kimbap korean roll',
-      '순두부찌개': 'sundubu jjigae tofu stew',
-      '갈비찜': 'galbi jjim braised ribs',
-      '파스타': 'pasta',
-      '스테이크': 'steak',
-      '샐러드': 'salad',
-      '수프': 'soup',
-      '카레': 'curry',
-      '볶음밥': 'fried rice',
-      '국수': 'noodles',
-      '만두': 'dumplings',
-      '치킨': 'fried chicken',
-      '피자': 'pizza',
-    };
-
-    const cleanTitle = recipeTitle.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').toLowerCase();
-
-    let searchQuery = '';
-    for (const [key, value] of Object.entries(foodNameMap)) {
-      if (cleanTitle.includes(key)) {
-        searchQuery = value;
-        break;
-      }
-    }
-
-    if (!searchQuery) {
-      const words = cleanTitle.split(/\s+/).slice(0, 2).join(' ');
-      searchQuery = `${words} food`;
-    }
-
+    // AI 기반 검색어 생성
+    console.log(`   🤖 AI 검색어 생성 중...`);
+    const searchQuery = await generateImageSearchQuery(recipeTitle);
     console.log(`   🔍 Unsplash 검색: "${searchQuery}"`);
 
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&orientation=landscape`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=3&orientation=landscape`,
       {
         headers: {
           'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
@@ -212,7 +259,20 @@ async function searchUnsplashImage(recipeTitle: string): Promise<{ url: string; 
     const data: any = await response.json();
 
     if (data.results && data.results.length > 0) {
+      // 검색어와의 연관성 검증 (AI 활용)
       const photo = data.results[0];
+
+      // AI로 이미지 설명과 레시피 제목의 연관성 검증
+      const isRelevant = await verifyImageRelevance(
+        recipeTitle,
+        photo.alt_description || photo.description || '',
+        searchQuery
+      );
+
+      if (!isRelevant) {
+        console.log(`   ❌ 이미지 연관도 낮음 (건너뜀)`);
+        return null;
+      }
 
       if (photo.links?.download_location) {
         await fetch(photo.links.download_location, {
@@ -220,7 +280,7 @@ async function searchUnsplashImage(recipeTitle: string): Promise<{ url: string; 
         });
       }
 
-      console.log(`   ✅ 이미지 찾음: ${photo.user.name}`);
+      console.log(`   ✅ 이미지 찾음 (연관도 확인됨): ${photo.user.name}`);
       return {
         url: photo.urls.regular,
         photographer: photo.user.name,
