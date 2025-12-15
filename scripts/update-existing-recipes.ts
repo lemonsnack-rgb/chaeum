@@ -2,11 +2,12 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 환경 변수 체크
-if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY || !process.env.VITE_GEMINI_API_KEY) {
+if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY || !process.env.VITE_GEMINI_API_KEY || !process.env.VITE_UNSPLASH_ACCESS_KEY) {
   console.error('❌ 필수 환경 변수가 설정되지 않았습니다:');
   console.error('  - VITE_SUPABASE_URL');
   console.error('  - VITE_SUPABASE_ANON_KEY');
   console.error('  - VITE_GEMINI_API_KEY');
+  console.error('  - VITE_UNSPLASH_ACCESS_KEY');
   process.exit(1);
 }
 
@@ -16,6 +17,7 @@ const supabase = createClient(
 );
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
+const UNSPLASH_ACCESS_KEY = process.env.VITE_UNSPLASH_ACCESS_KEY!;
 
 interface FAQ {
   question: string;
@@ -137,6 +139,90 @@ async function generateBlogContent(recipeTitle: string, mainIngredients: string[
   }
 }
 
+// Unsplash 이미지 검색
+async function searchUnsplashImage(recipeTitle: string): Promise<{ url: string; photographer: string } | null> {
+  try {
+    // 한글 요리명 → 영어 검색어 매핑
+    const foodNameMap: Record<string, string> = {
+      '김치찌개': 'kimchi stew korean',
+      '된장찌개': 'doenjang stew korean',
+      '불고기': 'bulgogi korean bbq',
+      '비빔밥': 'bibimbap korean rice',
+      '잡채': 'japchae korean noodles',
+      '삼겹살': 'samgyeopsal korean pork',
+      '떡볶이': 'tteokbokki korean rice cake',
+      '김밥': 'kimbap korean roll',
+      '순두부찌개': 'sundubu jjigae tofu stew',
+      '갈비찜': 'galbi jjim braised ribs',
+      '파스타': 'pasta',
+      '스테이크': 'steak',
+      '샐러드': 'salad',
+      '수프': 'soup',
+      '카레': 'curry',
+      '볶음밥': 'fried rice',
+      '국수': 'noodles',
+      '만두': 'dumplings',
+      '치킨': 'fried chicken',
+      '피자': 'pizza',
+    };
+
+    const cleanTitle = recipeTitle.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').toLowerCase();
+
+    let searchQuery = '';
+    for (const [key, value] of Object.entries(foodNameMap)) {
+      if (cleanTitle.includes(key)) {
+        searchQuery = value;
+        break;
+      }
+    }
+
+    if (!searchQuery) {
+      const words = cleanTitle.split(/\s+/).slice(0, 2).join(' ');
+      searchQuery = `${words} food`;
+    }
+
+    console.log(`   🔍 Unsplash 검색: "${searchQuery}"`);
+
+    const response = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&orientation=landscape`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.log(`   ⚠️  Unsplash API 오류: ${response.status}`);
+      return null;
+    }
+
+    const data: any = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      const photo = data.results[0];
+
+      if (photo.links?.download_location) {
+        await fetch(photo.links.download_location, {
+          headers: { 'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}` },
+        });
+      }
+
+      console.log(`   ✅ 이미지 찾음: ${photo.user.name}`);
+      return {
+        url: photo.urls.regular,
+        photographer: photo.user.name,
+      };
+    }
+
+    console.log(`   ❌ 이미지를 찾을 수 없습니다.`);
+    return null;
+  } catch (error: any) {
+    console.error(`   ❌ Unsplash 검색 실패:`, error.message);
+    return null;
+  }
+}
+
 // 메인 함수
 async function updateExistingRecipes() {
   const BATCH_SIZE = parseInt(process.env.UPDATE_BATCH_SIZE || '20'); // 기본 20개 (rate limit 안전), 환경변수로 조정 가능
@@ -145,12 +231,12 @@ async function updateExistingRecipes() {
   console.log(`📊 배치 크기: ${BATCH_SIZE}개\n`);
 
   try {
-    // Step 1: 블로그 콘텐츠가 없는 레시피 조회 (인기순 - view_count 기준)
+    // Step 1: 블로그 콘텐츠나 이미지가 없는 레시피 조회
     console.log('📋 업데이트 대상 레시피 조회 중...');
     const { data: recipes, error: fetchError } = await supabase
       .from('generated_recipes')
-      .select('id, title, main_ingredients, content')
-      .or('chef_tips.is.null,faq.is.null')
+      .select('id, title, main_ingredients, content, image_url')
+      .or('chef_tips.is.null,faq.is.null,image_url.is.null')
       .order('created_at', { ascending: true }) // 오래된 것부터
       .limit(BATCH_SIZE);
 
@@ -175,41 +261,64 @@ async function updateExistingRecipes() {
       console.log(`📝 제목: ${recipe.title}`);
       console.log(`🆔 ID: ${recipe.id}`);
 
-      // 블로그 콘텐츠 생성
-      const blogContent = await generateBlogContent(
-        recipe.title,
-        recipe.main_ingredients || [],
-        recipe.content?.description || ''
-      );
+      const updateData: any = {};
 
-      if (!blogContent) {
-        console.log(`   ❌ [${i + 1}] 블로그 콘텐츠 생성 실패`);
-        failedCount++;
-        continue;
+      // 블로그 콘텐츠 생성 (chef_tips나 faq가 없는 경우)
+      if (!recipe.chef_tips || !recipe.faq) {
+        console.log(`   📝 블로그 콘텐츠 생성 중...`);
+        const blogContent = await generateBlogContent(
+          recipe.title,
+          recipe.main_ingredients || [],
+          recipe.content?.description || ''
+        );
+
+        if (blogContent) {
+          updateData.chef_tips = blogContent.chef_tips;
+          updateData.faq = blogContent.faq;
+          updateData.storage_info = blogContent.storage_info;
+          updateData.pairing_suggestions = blogContent.pairing_suggestions;
+          console.log(`   ✅ 블로그 콘텐츠 생성 완료`);
+        } else {
+          console.log(`   ⚠️  블로그 콘텐츠 생성 실패`);
+        }
+      }
+
+      // 이미지 검색 (image_url이 없는 경우)
+      if (!recipe.image_url) {
+        console.log(`   🖼️  이미지 검색 중...`);
+        const imageData = await searchUnsplashImage(recipe.title);
+
+        if (imageData) {
+          updateData.image_url = imageData.url;
+          updateData.image_photographer = imageData.photographer;
+          console.log(`   ✅ 이미지 추가 완료`);
+        } else {
+          console.log(`   ⚠️  이미지 검색 실패`);
+        }
       }
 
       // DB 업데이트
-      const { error: updateError } = await supabase
-        .from('generated_recipes')
-        .update({
-          chef_tips: blogContent.chef_tips,
-          faq: blogContent.faq,
-          storage_info: blogContent.storage_info,
-          pairing_suggestions: blogContent.pairing_suggestions,
-        })
-        .eq('id', recipe.id);
+      if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
+          .from('generated_recipes')
+          .update(updateData)
+          .eq('id', recipe.id);
 
-      if (updateError) {
-        console.error(`   ❌ [${i + 1}] DB 업데이트 실패:`, updateError.message);
-        failedCount++;
-        continue;
+        if (updateError) {
+          console.error(`   ❌ [${i + 1}] DB 업데이트 실패:`, updateError.message);
+          failedCount++;
+          continue;
+        }
+
+        console.log(`   ✅ [${i + 1}] 업데이트 완료!`);
+        if (updateData.chef_tips) console.log(`   - 셰프 팁: ${updateData.chef_tips.length}개`);
+        if (updateData.faq) console.log(`   - FAQ: ${updateData.faq.length}개`);
+        if (updateData.image_url) console.log(`   - 이미지: ${updateData.image_photographer}`);
+        successCount++;
+      } else {
+        console.log(`   ℹ️  업데이트할 항목 없음`);
+        successCount++;
       }
-
-      console.log(`   ✅ [${i + 1}] 업데이트 완료!`);
-      console.log(`   - 셰프 팁: ${blogContent.chef_tips.length}개`);
-      console.log(`   - FAQ: ${blogContent.faq.length}개`);
-      console.log(`   - 보관 정보: ${blogContent.storage_info.refrigerator_days}일 (냉장)`);
-      successCount++;
 
       // API 요청 제한 방지를 위한 딜레이 (3초 - rate limit 안전)
       await new Promise(resolve => setTimeout(resolve, 3000));

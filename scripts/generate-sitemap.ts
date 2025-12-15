@@ -57,26 +57,44 @@ async function generateSitemap() {
 
   console.log(`  ✅ 정적 페이지 ${urls.length}개 추가\n`);
 
-  // 2. 데이터베이스에서 모든 레시피 가져오기
+  // 2. 데이터베이스에서 모든 레시피 가져오기 (페이지네이션)
   console.log('🍳 레시피 데이터 가져오는 중...');
-  const { data: recipes, error } = await supabase
-    .from('generated_recipes')
-    .select('id, created_at')
-    .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('❌ 레시피 데이터 가져오기 실패:', error);
-    process.exit(1);
+  let allRecipes: any[] = [];
+  let page = 0;
+  const pageSize = 1000;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data: recipes, error } = await supabase
+      .from('generated_recipes')
+      .select('id, created_at')
+      .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+
+    if (error) {
+      console.error('❌ 레시피 데이터 가져오기 실패:', error);
+      process.exit(1);
+    }
+
+    if (!recipes || recipes.length === 0) {
+      hasMore = false;
+    } else {
+      allRecipes = allRecipes.concat(recipes);
+      console.log(`  📄 페이지 ${page + 1}: ${recipes.length}개 (누적: ${allRecipes.length}개)`);
+      page++;
+      hasMore = recipes.length === pageSize;
+    }
   }
 
-  if (!recipes || recipes.length === 0) {
+  if (allRecipes.length === 0) {
     console.warn('⚠️ 레시피가 없습니다. 정적 페이지만 sitemap에 포함됩니다.');
   } else {
-    console.log(`  ✅ 레시피 ${recipes.length}개 발견\n`);
+    console.log(`  ✅ 총 ${allRecipes.length}개 레시피 발견\n`);
 
     // 3. 레시피 페이지 URL 추가
     console.log('📝 레시피 URL 생성 중...');
-    for (const recipe of recipes) {
+    for (const recipe of allRecipes) {
       urls.push({
         loc: `${SITE_URL}/recipe/${recipe.id}`,
         lastmod: new Date(recipe.created_at).toISOString().split('T')[0],
@@ -84,7 +102,7 @@ async function generateSitemap() {
         priority: 0.7,
       });
     }
-    console.log(`  ✅ 레시피 URL ${recipes.length}개 추가\n`);
+    console.log(`  ✅ 레시피 URL ${allRecipes.length}개 추가\n`);
   }
 
   // 4. sitemap.xml 생성

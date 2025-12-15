@@ -3,7 +3,7 @@ name: Update Existing Recipes
 on:
   schedule:
     # 5분마다 실행 (GitHub Actions 최소 간격)
-    # 무료 티어: 5분당 1개 기존 레시피 업데이트
+    # 무료 티어: 5분당 3개 기존 레시피 업데이트
     - cron: '*/5 * * * *'
 
   # 수동 실행 가능
@@ -12,7 +12,7 @@ on:
       batch_size:
         description: '업데이트할 레시피 개수'
         required: false
-        default: '20'
+        default: '3'
 
   # 외부 cron 서비스에서 트리거
   repository_dispatch:
