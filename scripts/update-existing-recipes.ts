@@ -235,7 +235,7 @@ async function updateExistingRecipes() {
     console.log('📋 업데이트 대상 레시피 조회 중...');
     const { data: recipes, error: fetchError } = await supabase
       .from('generated_recipes')
-      .select('id, title, main_ingredients, content, image_url')
+      .select('id, title, main_ingredients, content, image_url, chef_tips, faq')
       .or('chef_tips.is.null,faq.is.null,image_url.is.null')
       .order('created_at', { ascending: true }) // 오래된 것부터
       .limit(BATCH_SIZE);
