@@ -434,7 +434,7 @@ async function generateRecipesForTheme(
 
 async function generateRecipe() {
   console.log('🤖 레시피 자동 생성 시작... [' + new Date().toLocaleString('ko-KR') + ']');
-  console.log('📊 목표: 다양한 레시피 10개 생성 (테마 제약 없음)\n');
+  console.log('📊 목표: 다양한 레시피 5개 생성 (무료 티어 최적화)\n');
 
   try {
     // Step 1: 최근 생성된 재료 조회 (중복 방지)
@@ -461,13 +461,13 @@ async function generateRecipe() {
     const mainIngredient = selectRandomIngredient(uniqueRecent);
     console.log(`📦 선택된 메인 재료: ${mainIngredient.name} (우선순위: ${mainIngredient.priority}, 카테고리: ${mainIngredient.category})`);
 
-    // Step 3: 자유 테마로 10개 생성 (다양성 극대화)
+    // Step 3: 자유 테마로 5개 생성 (무료 티어 최적화)
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📍 다양한 레시피 생성 중... (10개)');
+    console.log('📍 다양한 레시피 생성 중... (5개)');
     console.log('   테마 제약 없이 AI가 자유롭게 다양한 레시피 생성');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    const result = await generateRecipesForTheme(mainIngredient, '', 10);
+    const result = await generateRecipesForTheme(mainIngredient, '', 5);
 
     // 전체 통계
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

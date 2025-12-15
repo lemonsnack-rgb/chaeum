@@ -38,7 +38,9 @@
       "Bash(psql \"$VITE_SUPABASE_URL\" -c \"\\d generated_recipes\")",
       "Bash(npm run generate-recipe:*)",
       "Bash(echo:*)",
-      "Bash(npm run update-recipes:*)"
+      "Bash(npm run update-recipes:*)",
+      "Bash(if curl -s -o /dev/null -w %{http_code} https://oneulfridge.com/sitemap.xml)",
+      "Bash(then echo \"✅ Sitemap이 배포되었습니다!\")"
     ],
     "deny": [],
     "ask": []

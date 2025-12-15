@@ -2,16 +2,12 @@ name: Auto Generate Recipe
 
 on:
   schedule:
-    # 매일 1회 실행 (오전 6시 KST, UTC 21시)
-    # 신규 레시피 생성 주기 감소 (기존 업데이트 우선)
-    - cron: '0 21 * * *'
+    # 주 2회 실행 (월요일, 목요일 오전 6시 KST, UTC 21시)
+    # 무료 티어 최적화: API 호출 절감
+    - cron: '0 21 * * 1,4'
 
   # 수동 실행 가능
   workflow_dispatch:
-
-  # 외부 cron 서비스에서 트리거
-  repository_dispatch:
-    types: [generate-recipe]
 
 jobs:
   generate:
