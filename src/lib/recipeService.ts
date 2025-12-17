@@ -1134,3 +1134,67 @@ export async function getRelatedRecipes(
 ): Promise<Recipe[]> {
   return getSimilarIngredientRecipes(currentRecipe, limit);
 }
+
+/**
+ * 랜덤 레시피 가져오기 (HomePage용)
+ * 최신 100개에서 랜덤 선택
+ */
+export async function getRandomRecipes(limit: number = 12): Promise<Recipe[]> {
+  try {
+    const { data, error } = await supabase
+      .from('generated_recipes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100); // 최신 100개에서 선택
+
+    if (error) throw error;
+    if (!data || data.length === 0) return [];
+
+    // 클라이언트 측에서 랜덤 셔플
+    const shuffled = [...data].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, limit);
+
+    // Recipe 형식으로 변환
+    return selected.map(dbRecipe => transformDatabaseRecipeToRecipe(dbRecipe));
+  } catch (error) {
+    console.error('Failed to get random recipes:', error);
+    return [];
+  }
+}
+
+/**
+ * 레시피 설명 추출 (HomePage 카드용)
+ * content 필드에서 HTML 태그 제거 후 앞부분 추출
+ */
+export function extractRecipeDescription(
+  recipe: Recipe,
+  maxLength: number = 100
+): string {
+  // content가 없으면 description 사용
+  const rawText = recipe.description || '';
+
+  if (!rawText) return '맛있는 요리를 만들어보세요!';
+
+  // HTML 태그 제거 및 정리
+  const cleanText = rawText
+    .replace(/<[^>]*>/g, '') // HTML 태그 제거
+    .replace(/&nbsp;/g, ' ') // &nbsp; 제거
+    .replace(/\n+/g, ' ') // 줄바꿈을 공백으로
+    .replace(/\s+/g, ' ') // 연속 공백 제거
+    .trim();
+
+  if (cleanText.length <= maxLength) {
+    return cleanText;
+  }
+
+  // maxLength까지 자르고 마지막 온전한 단어까지만 포함
+  const truncated = cleanText.slice(0, maxLength);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+
+  if (lastSpaceIndex > maxLength * 0.8) {
+    // 80% 이상 위치에 공백이 있으면 그곳에서 자르기
+    return truncated.slice(0, lastSpaceIndex) + '...';
+  }
+
+  return truncated + '...';
+}

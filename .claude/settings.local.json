@@ -40,7 +40,11 @@
       "Bash(echo:*)",
       "Bash(npm run update-recipes:*)",
       "Bash(if curl -s -o /dev/null -w %{http_code} https://oneulfridge.com/sitemap.xml)",
-      "Bash(then echo \"✅ Sitemap이 배포되었습니다!\")"
+      "Bash(then echo \"✅ Sitemap이 배포되었습니다!\")",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(gh run list:*)",
+      "Bash(if exist \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\src\\lib\\unsplashService.ts\" echo \"File exists\")"
     ],
     "deny": [],
     "ask": []

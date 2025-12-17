@@ -1,6 +1,6 @@
-import { RefrigeratorIcon, Search, ChefHat, User } from 'lucide-react';
+import { Home, RefrigeratorIcon, Heart, User } from 'lucide-react';
 
-export type Tab = 'fridge' | 'search' | 'my-recipes' | 'profile';
+export type Tab = 'home' | 'fridge' | 'search' | 'my-recipes' | 'profile';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -13,22 +13,22 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
       <div className="max-w-md mx-auto px-4 py-2.5">
         <div className="flex items-center justify-around">
           <button
+            onClick={() => onTabChange('home')}
+            className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
+              activeTab === 'home' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-xs font-medium">홈</span>
+          </button>
+          <button
             onClick={() => onTabChange('fridge')}
             className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
               activeTab === 'fridge' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             <RefrigeratorIcon className="w-5 h-5" />
-            <span className="text-xs font-medium">냉장고</span>
-          </button>
-          <button
-            onClick={() => onTabChange('search')}
-            className={`flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
-              activeTab === 'search' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Search className="w-5 h-5" />
-            <span className="text-xs font-medium">레시피 검색</span>
+            <span className="text-xs font-medium">내 냉장고</span>
           </button>
           <button
             onClick={() => onTabChange('my-recipes')}
@@ -36,8 +36,8 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               activeTab === 'my-recipes' ? 'text-primary' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
-            <ChefHat className="w-5 h-5" />
-            <span className="text-xs font-medium">내 레시피</span>
+            <Heart className="w-5 h-5" />
+            <span className="text-xs font-medium">찜한 레시피</span>
           </button>
           <button
             onClick={() => onTabChange('profile')}

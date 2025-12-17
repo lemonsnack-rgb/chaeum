@@ -20,6 +20,7 @@ import { AboutModal } from './components/AboutModal';
 import { ServiceBanner } from './components/ServiceBanner';
 import { Layout } from './components/Layout';
 import { Tab } from './components/BottomNav';
+import { HomePage } from './pages/HomePage';
 import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
 import { analyzeInventory } from './lib/gemini';
 import { InventoryAnalysis as InventoryAnalysisType } from './types/inventory';
@@ -43,7 +44,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<Tab>('fridge');
+  const [activeTab, setActiveTab] = useState<Tab>('home');
   const [myRecipesSubTab, setMyRecipesSubTab] = useState<MyRecipesSubTab>('recommended');
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
@@ -465,11 +466,23 @@ function App() {
         onTabChange={setActiveTab}
         onSearchClick={() => setActiveTab('search')}
         onRecentRecipeClick={handleViewRecentRecipe}
-        onLogoClick={() => setActiveTab('fridge')}
+        onLogoClick={() => setActiveTab('home')}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       >
-      <div className="max-w-md mx-auto px-4 py-6">
+      {activeTab === 'home' ? (
+        <HomePage
+          onNavigateToFridge={() => setActiveTab('fridge')}
+          onNavigateToSearch={(keyword) => {
+            if (keyword) {
+              setSearchQuery(keyword);
+            }
+            setActiveTab('search');
+          }}
+          onRecipeClick={handleRecipeClick}
+        />
+      ) : (
+        <div className="max-w-md mx-auto px-4 py-6">
         {activeTab === 'fridge' && (
           <>
             {/* 서비스 소개 배너 */}
@@ -778,7 +791,8 @@ function App() {
             )}
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* 푸터 */}
       <Footer onShowAbout={() => setShowAboutModal(true)} />

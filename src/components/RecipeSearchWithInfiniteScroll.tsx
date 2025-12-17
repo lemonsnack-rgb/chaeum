@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import { Recipe, searchPublicRecipesPaginated } from '../lib/recipeService';
 import { RecipeList } from './RecipeList';
@@ -15,6 +16,7 @@ export function RecipeSearchWithInfiniteScroll({
   userIngredients = [],
   searchQuery
 }: RecipeSearchWithInfiniteScrollProps) {
+  const [searchParams] = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,15 @@ export function RecipeSearchWithInfiniteScroll({
   const [selectedKeyword, setSelectedKeyword] = useState<string | null>(null);
 
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // URL 쿼리 파라미터에서 keyword 읽기
+  useEffect(() => {
+    const keywordFromUrl = searchParams.get('keyword');
+    if (keywordFromUrl && keywordFromUrl !== searchQuery) {
+      // URL에 keyword가 있으면 자동으로 검색 실행
+      setSelectedKeyword(keywordFromUrl);
+    }
+  }, [searchParams]);
 
   // 실제 사용할 검색어: 키워드가 선택되어 있으면 키워드 우선, 아니면 외부 검색어
   // selectedKeyword가 null이 아니면(''도 포함) 키워드를 사용

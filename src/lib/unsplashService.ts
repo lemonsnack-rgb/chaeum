@@ -193,3 +193,62 @@ export async function validateImageUrl(url: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Hero Section용 랜덤 음식 배경 이미지 가져오기
+ * 캐싱 지원 (24시간)
+ */
+export async function getHeroBackgroundImage(): Promise<string> {
+  const CACHE_KEY = 'hero_bg_image_cache';
+  const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24시간
+
+  try {
+    // 캐시 확인
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { url, timestamp } = JSON.parse(cached);
+      const age = Date.now() - timestamp;
+
+      if (age < CACHE_DURATION && url) {
+        console.log('✅ Hero 이미지 캐시 사용');
+        return url;
+      }
+    }
+
+    // 새 이미지 가져오기
+    if (!UNSPLASH_ACCESS_KEY) {
+      console.warn('⚠️ UNSPLASH_ACCESS_KEY가 설정되지 않았습니다.');
+      return '';
+    }
+
+    console.log('🔍 Unsplash에서 Hero 이미지 가져오는 중...');
+    const response = await fetch(
+      `${UNSPLASH_API_BASE}/photos/random?query=korean food cooking delicious restaurant&orientation=landscape&content_filter=high`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Unsplash API error: ${response.status}`);
+    }
+
+    const photo = await response.json();
+    const imageUrl = photo.urls.regular;
+
+    // 캐싱
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      url: imageUrl,
+      timestamp: Date.now()
+    }));
+
+    console.log('✅ Hero 이미지 가져오기 성공');
+    return imageUrl;
+  } catch (error) {
+    console.error('Unsplash Hero 이미지 로드 실패:', error);
+    // 폴백: 빈 문자열 (CSS 그라디언트 사용)
+    return '';
+  }
+}
