@@ -37,7 +37,7 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
   },
   // 라면/우동/소바 (돼지고기보다 먼저)
   {
-    keywords: ['라면', '우동', '소바', '미소라멘', '돈코츠라멘', '컵라면', '신라면', '짜파게티', '불닭볶음면'],
+    keywords: ['라면', '우동', '소바', '미소라멘', '돈코츠라멘', '탄탄면', '컵라면', '신라면', '짜파게티', '불닭볶음면'],
     imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
     alt: '라면'
   },
@@ -89,9 +89,9 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?w=800&q=80',
     alt: '한식 밥'
   },
-  // 국/탕류
+  // 국/탕류 (갈비탕 제외 - 갈비 카테고리에서 처리)
   {
-    keywords: ['미역국', '육개장', '갈비탕', '삼계탕', '곰탕', '설렁탕', '국', '탕'],
+    keywords: ['미역국', '육개장', '삼계탕', '곰탕', '설렁탕', '북어국', '국', '탕'],
     imageUrl: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800&q=80',
     alt: '한국 국물요리'
   },
@@ -125,9 +125,15 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80',
     alt: '전'
   },
-  // 찜/조림 (계란찜 제외 - 위에서 처리)
+  // 갈비요리 (찜보다 먼저)
   {
-    keywords: ['갈비찜', '찜닭', '아귀찜', '생선조림', '두부조림', '장조림', '찜', '조림'],
+    keywords: ['떡갈비', '갈비', '갈비찜', '갈비탕', '갈비구이'],
+    imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=800&q=80',
+    alt: '갈비'
+  },
+  // 찜/조림 (계란찜, 갈비찜 제외 - 위에서 처리)
+  {
+    keywords: ['찜닭', '아귀찜', '생선조림', '두부조림', '장조림', '찜', '조림'],
     imageUrl: 'https://images.unsplash.com/photo-1580554530778-ca36943938b2?w=800&q=80',
     alt: '찜'
   },
@@ -143,11 +149,17 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=800&q=80',
     alt: '만두'
   },
-  // 죽/수프
+  // 죽 (수프보다 먼저)
   {
-    keywords: ['죽', '전복죽', '호박죽', '잣죽', '수프', '스프'],
+    keywords: ['죽', '전복죽', '호박죽', '잣죽', '팥죽'],
     imageUrl: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
     alt: '죽'
+  },
+  // 수프/스프 (죽보다 나중)
+  {
+    keywords: ['수프', '스프', '크림수프', '콘스프'],
+    imageUrl: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
+    alt: '수프'
   },
   // 떡/떡국
   {
