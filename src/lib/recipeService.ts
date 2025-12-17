@@ -1155,7 +1155,7 @@ export async function getRandomRecipes(limit: number = 12): Promise<Recipe[]> {
     const selected = shuffled.slice(0, limit);
 
     // Recipe 형식으로 변환
-    return selected.map(dbRecipe => transformDatabaseRecipeToRecipe(dbRecipe));
+    return selected.map(dbRecipe => databaseToRecipe(dbRecipe));
   } catch (error) {
     console.error('Failed to get random recipes:', error);
     return [];
