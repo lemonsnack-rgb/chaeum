@@ -115,7 +115,7 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
   },
   // 치킨/닭요리
   {
-    keywords: ['치킨', '양념치킨', '후라이드', '닭강정', '닭', '프라이드치킨'],
+    keywords: ['치킨', '양념치킨', '후라이드', '닭강정', '닭고기', '닭가슴살', '닭다리', '닭'],
     imageUrl: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=800&q=80',
     alt: '치킨'
   },
@@ -175,13 +175,13 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
   },
   // 삼겹살/돼지고기
   {
-    keywords: ['삼겹살', '목살', '항정살', '돼지고기구이'],
+    keywords: ['삼겹살', '목살', '항정살', '돼지고기', '돈육', '앞다리살'],
     imageUrl: 'https://images.unsplash.com/photo-1606851094291-6f8a1b5e8b6f?w=800&q=80',
     alt: '삼겹살'
   },
   // 소고기 (일반적)
   {
-    keywords: ['소고기', '육회', '장조림'],
+    keywords: ['소고기', '쇠고기', '우육', '육회', '채끝살', '안창살'],
     imageUrl: 'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=800&q=80',
     alt: '소고기'
   },
@@ -199,9 +199,21 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
   },
   // 해산물 (일반적 - 나중에)
   {
-    keywords: ['새우', '생선', '해산물', '조개', '오징어', '문어', '꽃게'],
+    keywords: ['새우', '생선', '해산물', '조개', '오징어', '문어', '꽃게', '홍합', '바지락', '전복', '광어', '고등어', '갈치', '명태'],
     imageUrl: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=800&q=80',
     alt: '해산물'
+  },
+  // 두부/콩 제품
+  {
+    keywords: ['두부', '순두부', '연두부', '콩나물', '콩'],
+    imageUrl: 'https://images.unsplash.com/photo-1600453244245-8c5b9bb67772?w=800&q=80',
+    alt: '두부'
+  },
+  // 버섯
+  {
+    keywords: ['버섯', '표고버섯', '느타리버섯', '팽이버섯', '새송이버섯'],
+    imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
+    alt: '버섯'
   },
   // 샐러드 (채소/야채를 제외하여 잡채 오매칭 방지)
   {
@@ -284,6 +296,7 @@ export function isValidImageUrl(url: string | undefined | null): boolean {
 
 /**
  * 레시피 이미지 URL 검증 및 폴백
+ * 우선순위: DB 이미지 > 주재료 > 제목 > 기본 이미지
  */
 export function getRecipeImageUrl(
   recipe: { image_url?: string; title: string; main_ingredients?: string[] }
@@ -293,15 +306,18 @@ export function getRecipeImageUrl(
     return recipe.image_url!;
   }
 
-  // 2. 제목 기반 폴백 이미지 시도
+  // 2. 주재료 기반 매칭 (가장 정확함)
+  if (recipe.main_ingredients && recipe.main_ingredients.length > 0) {
+    const ingredientMatch = getFallbackImageByIngredients(recipe.main_ingredients);
+    if (ingredientMatch !== DEFAULT_FALLBACK) {
+      return ingredientMatch;
+    }
+  }
+
+  // 3. 제목 기반 폴백 이미지 시도
   const titleMatch = findImageByKeywords(recipe.title);
   if (titleMatch) {
     return titleMatch;
-  }
-
-  // 3. 제목 매칭 실패 시 주재료 기반 폴백
-  if (recipe.main_ingredients && recipe.main_ingredients.length > 0) {
-    return getFallbackImageByIngredients(recipe.main_ingredients);
   }
 
   // 4. 최종 기본 이미지
