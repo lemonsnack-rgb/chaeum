@@ -209,21 +209,41 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
 const DEFAULT_FALLBACK = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80';
 
 /**
- * 레시피 제목으로 적절한 폴백 이미지 찾기
+ * 텍스트에서 키워드 매칭하여 이미지 찾기
  */
-export function getFallbackImageForRecipe(recipeTitle: string): string {
-  const lowerTitle = recipeTitle.toLowerCase();
+function findImageByKeywords(text: string): string | null {
+  const lowerText = text.toLowerCase();
 
-  // 키워드 매칭
   for (const category of FALLBACK_IMAGES) {
     for (const keyword of category.keywords) {
-      if (lowerTitle.includes(keyword)) {
+      if (lowerText.includes(keyword)) {
         return category.imageUrl;
       }
     }
   }
 
-  // 매칭 실패 시 기본 이미지
+  return null;
+}
+
+/**
+ * 레시피 제목으로 적절한 폴백 이미지 찾기
+ */
+export function getFallbackImageForRecipe(recipeTitle: string): string {
+  return findImageByKeywords(recipeTitle) || DEFAULT_FALLBACK;
+}
+
+/**
+ * 주재료 목록으로 폴백 이미지 찾기
+ */
+export function getFallbackImageByIngredients(ingredients: string[]): string {
+  // 주재료를 순서대로 검색 (첫 번째 재료가 메인)
+  for (const ingredient of ingredients) {
+    const imageUrl = findImageByKeywords(ingredient);
+    if (imageUrl) {
+      return imageUrl;
+    }
+  }
+
   return DEFAULT_FALLBACK;
 }
 
@@ -254,13 +274,24 @@ export function isValidImageUrl(url: string | undefined | null): boolean {
  * 레시피 이미지 URL 검증 및 폴백
  */
 export function getRecipeImageUrl(
-  recipe: { image_url?: string; title: string }
+  recipe: { image_url?: string; title: string; main_ingredients?: string[] }
 ): string {
   // 1. DB의 이미지 URL이 유효하면 사용
   if (isValidImageUrl(recipe.image_url)) {
     return recipe.image_url!;
   }
 
-  // 2. 제목 기반 폴백 이미지
-  return getFallbackImageForRecipe(recipe.title);
+  // 2. 제목 기반 폴백 이미지 시도
+  const titleMatch = findImageByKeywords(recipe.title);
+  if (titleMatch) {
+    return titleMatch;
+  }
+
+  // 3. 제목 매칭 실패 시 주재료 기반 폴백
+  if (recipe.main_ingredients && recipe.main_ingredients.length > 0) {
+    return getFallbackImageByIngredients(recipe.main_ingredients);
+  }
+
+  // 4. 최종 기본 이미지
+  return DEFAULT_FALLBACK;
 }
