@@ -1,4 +1,5 @@
 import { Recipe, extractRecipeDescription } from '../lib/recipeService';
+import { getRecipeImageUrl } from '../lib/fallbackImages';
 
 interface RecipeCardWithImageProps {
   recipe: Recipe;
@@ -13,8 +14,11 @@ export function RecipeCardWithImage({
 }: RecipeCardWithImageProps) {
   const description = extractRecipeDescription(recipe, maxDescriptionLength);
 
-  // 이미지 fallback: Unsplash에서 가져온 이미지가 없으면 그라디언트 사용
-  const hasImage = recipe.image_url && recipe.image_url.trim() !== '';
+  // 카테고리 기반 폴백 이미지 시스템 사용
+  const imageUrl = getRecipeImageUrl(recipe);
+
+  // 디버깅: 어떤 이미지 URL이 사용되는지 확인
+  console.log(`[RecipeCard] ${recipe.title} → ${imageUrl}`);
 
   return (
     <div
@@ -23,23 +27,16 @@ export function RecipeCardWithImage({
     >
       {/* 이미지 영역 */}
       <div className="relative aspect-video bg-gradient-to-br from-orange-100 to-orange-200 overflow-hidden">
-        {hasImage ? (
-          <img
-            src={recipe.image_url}
-            alt={recipe.title}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              // 이미지 로드 실패 시 그라디언트로 대체
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        ) : (
-          // 이미지가 없을 때 아이콘 + 그라디언트
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-white text-5xl">🍳</div>
-          </div>
-        )}
+        <img
+          src={imageUrl}
+          alt={recipe.title}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            // 이미지 로드 실패 시 기본 폴백 이미지로 대체
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80';
+          }}
+        />
 
         {/* 조리 시간 뱃지 */}
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-700 shadow-sm">
