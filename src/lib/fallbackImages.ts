@@ -107,6 +107,12 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&q=80',
     alt: '국수'
   },
+  // 계란/달걀 요리 (치킨보다 먼저)
+  {
+    keywords: ['달걀말이', '계란말이', '계란후라이', '달걀후라이', '스크램블', '에그', '오믈렛', '계란찜'],
+    imageUrl: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=800&q=80',
+    alt: '계란요리'
+  },
   // 치킨/닭요리
   {
     keywords: ['치킨', '양념치킨', '후라이드', '닭강정', '닭', '프라이드치킨'],
@@ -119,11 +125,29 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&q=80',
     alt: '전'
   },
-  // 찜/조림
+  // 찜/조림 (계란찜 제외 - 위에서 처리)
   {
-    keywords: ['갈비찜', '찜닭', '아귀찜', '계란찜', '생선조림', '두부조림', '찜', '조림'],
+    keywords: ['갈비찜', '찜닭', '아귀찜', '생선조림', '두부조림', '장조림', '찜', '조림'],
     imageUrl: 'https://images.unsplash.com/photo-1580554530778-ca36943938b2?w=800&q=80',
     alt: '찜'
+  },
+  // 김치/반찬류
+  {
+    keywords: ['김치', '깍두기', '나물', '무침', '겉절이', '반찬'],
+    imageUrl: 'https://images.unsplash.com/photo-1588569697853-44eabf5df76b?w=800&q=80',
+    alt: '김치반찬'
+  },
+  // 만두/교자
+  {
+    keywords: ['만두', '물만두', '군만두', '교자', '왕만두'],
+    imageUrl: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=800&q=80',
+    alt: '만두'
+  },
+  // 죽/수프
+  {
+    keywords: ['죽', '전복죽', '호박죽', '잣죽', '수프', '스프'],
+    imageUrl: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
+    alt: '죽'
   },
   // 떡/떡국
   {
@@ -181,8 +205,8 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
   }
 ];
 
-// 기본 폴백 이미지 (매칭 실패 시)
-const DEFAULT_FALLBACK = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80';
+// 기본 폴백 이미지 (매칭 실패 시 - 일반적인 한식 상차림)
+const DEFAULT_FALLBACK = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80';
 
 /**
  * 레시피 제목으로 적절한 폴백 이미지 찾기
