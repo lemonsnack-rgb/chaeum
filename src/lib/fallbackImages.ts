@@ -11,6 +11,12 @@ interface FallbackImageMap {
 
 // 카테고리별 폴백 이미지 (우선순위 순서로 정렬 - 구체적인 것부터)
 const FALLBACK_IMAGES: FallbackImageMap[] = [
+  // 잡채 (채소보다 훨씬 먼저)
+  {
+    keywords: ['잡채'],
+    imageUrl: 'https://images.unsplash.com/photo-1620287341260-a6d1737b6c0e?w=800&q=80',
+    alt: '잡채'
+  },
   // 김밥/삼각김밥 (밥보다 먼저)
   {
     keywords: ['삼각김밥', '김밥', '유부초밥', '주먹밥'],
@@ -28,6 +34,12 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     keywords: ['팟타이', '쌀국수', '월남쌈', '똠양꿍', '태국', '베트남'],
     imageUrl: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80',
     alt: '팟타이'
+  },
+  // 라면/우동/소바 (돼지고기보다 먼저)
+  {
+    keywords: ['라면', '우동', '소바', '미소라멘', '돈코츠라멘', '컵라면', '신라면', '짜파게티', '불닭볶음면'],
+    imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
+    alt: '라면'
   },
   // 샌드위치/버거
   {
@@ -83,29 +95,17 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800&q=80',
     alt: '한국 국물요리'
   },
-  // 라면/인스턴트면
-  {
-    keywords: ['라면', '컵라면', '신라면', '짜파게티', '불닭볶음면'],
-    imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80',
-    alt: '라면'
-  },
   // 파스타/스파게티
   {
     keywords: ['파스타', '스파게티', '까르보나라', '알리오올리오', '봉골레', '크림파스타'],
     imageUrl: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=800&q=80',
     alt: '파스타'
   },
-  // 국수/면류 (라면보다 나중)
+  // 국수/면류
   {
     keywords: ['국수', '냉면', '칼국수', '비빔국수', '잔치국수', '막국수'],
     imageUrl: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&q=80',
     alt: '국수'
-  },
-  // 잡채
-  {
-    keywords: ['잡채'],
-    imageUrl: 'https://images.unsplash.com/photo-1620287341260-a6d1737b6c0e?w=800&q=80',
-    alt: '잡채'
   },
   // 치킨/닭요리
   {
@@ -167,9 +167,9 @@ const FALLBACK_IMAGES: FallbackImageMap[] = [
     imageUrl: 'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=800&q=80',
     alt: '해산물'
   },
-  // 샐러드
+  // 샐러드 (채소/야채를 제외하여 잡채 오매칭 방지)
   {
-    keywords: ['샐러드', '시저샐러드', '채소샐러드', '야채', '채소'],
+    keywords: ['샐러드', '시저샐러드', '채소샐러드'],
     imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
     alt: '샐러드'
   },
