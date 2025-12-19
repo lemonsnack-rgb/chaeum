@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Sparkles, Target, Leaf, Loader2, ArrowRight } from 'lucide-react';
 import { HeroSection } from '../components/HeroSection';
 import { RecipeCardWithImage } from '../components/RecipeCardWithImage';
@@ -54,18 +53,6 @@ export function HomePage({
 
   return (
     <>
-      <Helmet>
-        <title>오늘의냉장고 - AI 맞춤 레시피 추천 | 냉장고 파먹기</title>
-        <meta
-          name="description"
-          content="냉장고 속 잠든 재료로 만드는 맞춤 레시피. 영수증 촬영만으로 재료 자동 인식, AI 맞춤 요리법 추천, 음식물 쓰레기 줄이기. 고물가 시대 식비 절약의 시작!"
-        />
-        <meta
-          name="keywords"
-          content="냉장고 파먹기, 레시피 추천, AI 요리, 냉장고 재료, 식비 절약, 간편 요리, 냉털, 영수증 인식, 식재료 관리"
-        />
-      </Helmet>
-
       {/* Hero Section */}
       <HeroSection
         onCameraClick={onNavigateToFridge}

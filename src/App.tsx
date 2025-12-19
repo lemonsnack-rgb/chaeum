@@ -1,6 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { initGA, trackPageView } from './lib/analytics';
 import { ShieldCheck, ChefHat, User, Loader2, LogOut, AlertCircle, Utensils } from 'lucide-react';
 import { useIngredients } from './hooks/useIngredients';
@@ -41,9 +42,9 @@ import {
 type MyRecipesSubTab = 'recommended' | 'saved';
 
 function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [myRecipesSubTab, setMyRecipesSubTab] = useState<MyRecipesSubTab>('recommended');
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
@@ -81,8 +82,9 @@ function App() {
 
   useEffect(() => {
     // 페이지 변경 시 자동으로 페이지뷰 추적
-    trackPageView(location.pathname + location.search, document.title);
-  }, [location]);
+    const search = searchParams?.toString() ? `?${searchParams.toString()}` : '';
+    trackPageView(pathname + search, document.title);
+  }, [pathname, searchParams]);
 
   const handleIngredientsExtracted = async (names: string[]) => {
     console.log('Extracted ingredients:', names);
@@ -367,7 +369,7 @@ function App() {
   }
 
   function handleRecipeClick(recipe: Recipe) {
-    navigate(`/recipe/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}`);
   }
 
   async function handleViewRecentRecipe() {
@@ -380,7 +382,7 @@ function App() {
         return;
       }
 
-      navigate(`/recipe/${recentRecipeId}`);
+      router.push(`/recipe/${recentRecipeId}`);
     } catch (error) {
       console.error('Failed to load recent recipe:', error);
       alert('레시피를 불러오는 중 오류가 발생했습니다.');
@@ -406,61 +408,6 @@ function App() {
 
   return (
     <>
-      <Helmet>
-        {/* 기본 메타태그 */}
-        <title>오늘의냉장고 - AI 맞춤 레시피 추천 | 냉장고 재료로 요리 찾기</title>
-        <meta name="description" content="냉장고 재료로 만들 수 있는 레시피를 AI가 추천! 남은 재료 요리, 간편식 레시피, 건강 요리법을 찾아보세요. 사진 촬영만으로 재료 자동 인식, 무료 레시피 검색 서비스." />
-        <meta name="keywords" content="레시피 추천, 냉장고 재료 요리, AI 레시피, 남은 재료 요리, 간편 요리, 건강 레시피, 맞춤 요리법, 재료 검색, 레시피 검색, 요리법" />
-        <meta name="author" content="오늘의냉장고" />
-        <link rel="canonical" href="https://oneulfridge.com" />
-
-        {/* Open Graph (Facebook, KakaoTalk) */}
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="오늘의냉장고" />
-        <meta property="og:title" content="오늘의냉장고 - AI 맞춤 레시피 추천" />
-        <meta property="og:description" content="냉장고 재료로 만들 수 있는 레시피를 AI가 추천! 남은 재료로 간편하게 요리하세요." />
-        <meta property="og:image" content="https://oneulfridge.com/og-image.png" />
-        <meta property="og:url" content="https://oneulfridge.com" />
-        <meta property="og:locale" content="ko_KR" />
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="오늘의냉장고 - AI 맞춤 레시피 추천" />
-        <meta name="twitter:description" content="냉장고 재료로 만들 수 있는 레시피를 AI가 추천! 남은 재료로 간편하게 요리하세요." />
-        <meta name="twitter:image" content="https://oneulfridge.com/og-image.png" />
-
-        {/* 구조화 데이터 (Schema.org) */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": "오늘의냉장고",
-            "alternateName": "oneulfridge",
-            "url": "https://oneulfridge.com",
-            "description": "AI 기반 냉장고 재료 맞춤 레시피 추천 서비스",
-            "potentialAction": {
-              "@type": "SearchAction",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": "https://oneulfridge.com?tab=search&q={search_term_string}"
-              },
-              "query-input": "required name=search_term_string"
-            }
-          })}
-        </script>
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "오늘의냉장고",
-            "url": "https://oneulfridge.com",
-            "logo": "https://oneulfridge.com/logo.png",
-            "sameAs": [],
-            "description": "AI 기술로 냉장고 재료를 분석하여 맞춤 레시피를 추천하는 서비스"
-          })}
-        </script>
-      </Helmet>
-
       <Layout
         activeTab={activeTab}
         onTabChange={setActiveTab}

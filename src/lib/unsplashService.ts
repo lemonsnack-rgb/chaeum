@@ -6,7 +6,7 @@
  * 무료 플랜: 50 requests/hour, 5000 requests/month
  */
 
-const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
 const UNSPLASH_API_BASE = 'https://api.unsplash.com';
 
 export interface UnsplashImage {
@@ -232,7 +232,8 @@ export async function getHeroBackgroundImage(): Promise<string> {
     );
 
     if (!response.ok) {
-      throw new Error(`Unsplash API error: ${response.status}`);
+      console.warn(`⚠️ Unsplash API error: ${response.status}. 기본 배경을 사용합니다.`);
+      return '';
     }
 
     const photo = await response.json();

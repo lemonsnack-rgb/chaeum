@@ -9,7 +9,7 @@ let isInitialized = false;
  * 멀티 트래커: 두 개의 GA4 속성에 동시 전송
  */
 export function initGA() {
-  const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   if (!measurementId) {
     console.warn('⚠️ GA4 Measurement ID가 설정되지 않았습니다. 분석 기능이 비활성화됩니다.');

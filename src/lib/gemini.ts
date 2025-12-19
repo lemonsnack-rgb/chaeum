@@ -1,14 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+// Next.js 환경 변수 지원
+const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 
 // 환경 변수 디버깅
 if (!apiKey) {
   console.error('❌ Gemini API 키가 설정되지 않았습니다!');
-  console.error('VITE_GEMINI_API_KEY:', apiKey ? '✅ 설정됨' : '❌ 없음');
+  console.error('NEXT_PUBLIC_GEMINI_API_KEY:', apiKey ? '✅ 설정됨' : '❌ 없음');
   console.error('');
   console.error('해결 방법:');
-  console.error('1. .env 파일에 VITE_GEMINI_API_KEY가 있는지 확인');
+  console.error('1. .env.local 파일에 NEXT_PUBLIC_GEMINI_API_KEY가 있는지 확인');
   console.error('2. 개발 서버를 재시작 (npm run dev)');
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
 import { Search, Loader2 } from 'lucide-react';
 import { Recipe, searchPublicRecipesPaginated } from '../lib/recipeService';
 import { RecipeList } from './RecipeList';

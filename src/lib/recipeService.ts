@@ -1147,8 +1147,22 @@ export async function getRandomRecipes(limit: number = 12): Promise<Recipe[]> {
       .order('created_at', { ascending: false })
       .limit(100); // 최신 100개에서 선택
 
-    if (error) throw error;
-    if (!data || data.length === 0) return [];
+    if (error) {
+      console.error('Supabase error in getRandomRecipes:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('⚠️ No recipes found in database');
+      return [];
+    }
+
+    console.log(`✅ Loaded ${data.length} recipes from database`);
 
     // 클라이언트 측에서 랜덤 셔플
     const shuffled = [...data].sort(() => 0.5 - Math.random());
@@ -1158,6 +1172,8 @@ export async function getRandomRecipes(limit: number = 12): Promise<Recipe[]> {
     return selected.map(dbRecipe => databaseToRecipe(dbRecipe));
   } catch (error) {
     console.error('Failed to get random recipes:', error);
+    console.error('Error type:', typeof error);
+    console.error('Error constructor:', error?.constructor?.name);
     return [];
   }
 }

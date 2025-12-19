@@ -1,5 +1,4 @@
 import { Refrigerator, Search, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { RefObject } from 'react';
 
 interface CommonHeaderProps {
@@ -19,13 +18,9 @@ export function CommonHeader({
   onSearchChange,
   searchInputRef
 }: CommonHeaderProps) {
-  const navigate = useNavigate();
-
   const handleLogoClick = () => {
     if (onLogoClick) {
       onLogoClick();
-    } else {
-      navigate('/');
     }
   };
 

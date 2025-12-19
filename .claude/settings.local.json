@@ -44,7 +44,16 @@
       "Bash(git pull:*)",
       "Bash(git stash:*)",
       "Bash(gh run list:*)",
-      "Bash(if exist \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\src\\lib\\unsplashService.ts\" echo \"File exists\")"
+      "Bash(if exist \"g:\\내 드라이브\\00_프로젝트\\chaeum-main\\chaeum-main\\src\\lib\\unsplashService.ts\" echo \"File exists\")",
+      "Bash(taskkill:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \"=== 기존 .env 파일 내용 ===\")",
+      "Bash(else echo \".env 파일이 없습니다\")",
+      "Bash(vercel env pull:*)",
+      "Bash(vercel link:*)",
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "Bash(del NUL)"
     ],
     "deny": [],
     "ask": []
