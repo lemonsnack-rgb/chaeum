@@ -22,7 +22,7 @@ import { ServiceBanner } from './components/ServiceBanner';
 import { Layout } from './components/Layout';
 import { Tab } from './components/BottomNav';
 import { HomePage } from './pages/HomePage';
-import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe, getRecipeById } from './lib/recipeService';
+import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe } from './lib/recipeService';
 import { analyzeInventory } from './lib/gemini';
 import { InventoryAnalysis as InventoryAnalysisType } from './types/inventory';
 import { signOut, getCurrentUser, getMyBookmarkedRecipes } from './lib/authService';
@@ -171,7 +171,7 @@ function App() {
 
   // URL 쿼리 파라미터로 탭 전환
   useEffect(() => {
-    const tab = searchParams.get('tab');
+    const tab = searchParams?.get('tab');
     if (tab === 'search') {
       setActiveTab('search');
     }
