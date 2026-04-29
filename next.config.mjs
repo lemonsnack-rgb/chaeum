@@ -12,6 +12,12 @@ const nextConfig = {
       },
     ],
   },
+
+  // Only files ending in page.* or api.* should be treated as Next pages.
+  // This prevents legacy React/Vite view components under src/pages from being
+  // interpreted as Pages Router routes during Vercel builds.
+  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js', 'api.ts', 'api.js'],
+
   // Vercel에서 정적 페이지 생성
   output: 'standalone',
 
