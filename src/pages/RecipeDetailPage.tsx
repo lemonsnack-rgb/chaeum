@@ -6,7 +6,7 @@ import { Layout } from '../components/Layout';
 import { getRecipeById, Recipe, saveUserRecipe, unsaveUserRecipe, getSimilarIngredientRecipes, getCompanionRecipes, getBalancedNutritionRecipes } from '../lib/recipeService';
 import { getCurrentUser } from '../lib/authService';
 import { getRecentRecipeView } from '../lib/recipeViewService';
-import { trackRecipeView as trackRecipeViewGA, trackRecipeSave, trackRecipeUnsave } from '../lib/analytics';
+import { trackRecipeView as trackRecipeViewGA } from '../lib/analytics';
 import { Loader2 } from 'lucide-react';
 
 export function RecipeDetailPage() {
@@ -192,10 +192,7 @@ export function RecipeDetailPage() {
       // ⭐ 조리 시간 (SEO 핵심) - totalTime만 제공하여 정확한 시간 표시
       "totalTime": totalTimeISO,
 
-      // ⭐ 이미지 (Unsplash 실제 이미지 또는 기본 이미지)
-      "image": recipe.image_url
-        ? [recipe.image_url, `https://www.oneulfridge.com/og-image.jpg`]
-        : [`https://www.oneulfridge.com/images/recipe-placeholder.jpg`, `https://www.oneulfridge.com/og-image.jpg`],
+      // 관련도 낮은 외부 음식 사진을 구조화 데이터에서도 제외
 
       // ⭐ 인분
       "recipeYield": `${recipe.servings || 2}인분`,
@@ -405,7 +402,7 @@ export function RecipeDetailPage() {
         <meta property="article:tag" content={recipe.main_ingredients?.join(',') || ''} />
 
         {/* Twitter 카드 */}
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={`${recipe.title || '레시피'} - 오늘의냉장고`} />
         <meta
           name="twitter:description"
@@ -455,3 +452,5 @@ export function RecipeDetailPage() {
     </>
   );
 }
+
+export default RecipeDetailPage;
