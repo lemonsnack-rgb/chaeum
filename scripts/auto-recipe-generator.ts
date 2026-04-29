@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { randomUUID } from 'crypto';
-import { selectRandomIngredient, INGREDIENT_DATABASE } from './ingredient-database';
+import { selectRandomIngredient } from './ingredient-database';
 import { generateRecipePrompt } from '../src/ai/recipe_generation_prompt';
 
 // 환경 변수 체크
