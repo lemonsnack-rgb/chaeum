@@ -9,3 +9,14 @@
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
+
+@layer components {
+  /*
+   * Recipe detail pages previously rendered third-party food photos above the
+   * title. Hide only that photo container while keeping functional images such
+   * as camera upload UI and affiliate banners intact.
+   */
+  div:has(> img[alt$='요리 사진']) {
+    display: none;
+  }
+}
