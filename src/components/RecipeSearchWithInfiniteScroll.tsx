@@ -16,7 +16,7 @@ export function RecipeSearchWithInfiniteScroll({
   userIngredients = [],
   searchQuery
 }: RecipeSearchWithInfiniteScrollProps) {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export function RecipeSearchWithInfiniteScroll({
 
   // URL 쿼리 파라미터에서 keyword 읽기
   useEffect(() => {
-    const keywordFromUrl = searchParams.get('keyword');
+    const keywordFromUrl = searchParams?.get('keyword');
     if (keywordFromUrl && keywordFromUrl !== searchQuery) {
       // URL에 keyword가 있으면 자동으로 검색 실행
       setSelectedKeyword(keywordFromUrl);

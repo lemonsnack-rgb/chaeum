@@ -1,19 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 
-// 환경 변수 체크
-if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
-  console.error('❌ 필수 환경 변수가 설정되지 않았습니다:');
-  console.error('  - VITE_SUPABASE_URL');
-  console.error('  - VITE_SUPABASE_ANON_KEY');
-  process.exit(1);
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.VITE_SUPABASE_ANON_KEY!
-);
+const supabase: SupabaseClient | null =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null;
 
 const SITE_URL = 'https://www.oneulfridge.com';
 
@@ -56,6 +52,12 @@ async function generateSitemap() {
   });
 
   console.log(`  ✅ 정적 페이지 ${urls.length}개 추가\n`);
+
+  if (!supabase) {
+    console.warn('⚠️ Supabase 환경 변수가 없어 정적 URL만 포함한 sitemap을 생성합니다.');
+    writeSitemap(urls);
+    return;
+  }
 
   // 2. 데이터베이스에서 모든 레시피 가져오기 (페이지네이션)
   console.log('🍳 레시피 데이터 가져오는 중...');
@@ -105,6 +107,10 @@ async function generateSitemap() {
     console.log(`  ✅ 레시피 URL ${allRecipes.length}개 추가\n`);
   }
 
+  writeSitemap(urls);
+}
+
+function writeSitemap(urls: SitemapUrl[]) {
   // 4. sitemap.xml 생성
   console.log('🔨 sitemap.xml 파일 생성 중...');
   const xml = generateSitemapXml(urls);

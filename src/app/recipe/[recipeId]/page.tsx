@@ -150,7 +150,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       tags: recipe.main_ingredients,
     },
     twitter: {
-      card: 'summary_large_image',
+      card: 'summary',
       title: `${recipe.title} - 오늘의냉장고`,
       description,
     },
@@ -178,9 +178,6 @@ export default async function RecipeDetailPage({ params }: Props) {
     "name": recipe.title || "레시피",
     "description": recipe.description || `${recipe.title || '레시피'}입니다. ${recipe.main_ingredients?.join(', ') || ''}로 만드는 건강한 요리입니다.`,
     "totalTime": totalTimeISO,
-    "image": recipe.image_url
-      ? [recipe.image_url, `https://www.oneulfridge.com/og-image.jpg`]
-      : [`https://www.oneulfridge.com/images/recipe-placeholder.jpg`, `https://www.oneulfridge.com/og-image.jpg`],
     "recipeYield": `${recipe.servings || 2}인분`,
     "recipeIngredient": recipe.ingredients_detail?.map((ing) =>
       `${ing.name} ${ing.amount}`
@@ -344,7 +341,6 @@ export default async function RecipeDetailPage({ params }: Props) {
         <p>조리 시간: {recipe.cooking_time || 30}분</p>
         <meta itemProp="totalTime" content={totalTimeISO} />
         <meta itemProp="recipeYield" content={`${recipe.servings || 2}인분`} />
-        {recipe.image_url && <meta itemProp="image" content={recipe.image_url} />}
         <meta itemProp="author" content="오늘의냉장고" />
         <meta itemProp="datePublished" content={recipe.created_at} />
       </article>

@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import App from './App';
-import { RecipeDetailPage } from './pages/RecipeDetailPage';
+import { RecipeDetailPage } from './views/RecipeDetailPage';
 
 export function AppRouter() {
   return (

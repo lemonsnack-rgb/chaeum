@@ -367,13 +367,6 @@ async function generateRecipesForTheme(
     console.log(`   - 재료: ${newRecipe.ingredients_detail.length}개, 단계: ${newRecipe.instructions.length}단계`);
     console.log(`   - 조리 시간: ${newRecipe.cooking_time}분, 칼로리: ${newRecipe.nutrition.calories}kcal`);
 
-    // Unsplash 이미지 검색
-    const imageData = await searchUnsplashImage(newRecipe.title, newRecipe.main_ingredients);
-    if (imageData) {
-      newRecipe.image_url = imageData.url;
-      newRecipe.image_photographer = imageData.photographer;
-    }
-
     // 중복 체크
     const { data: existingRecipe } = await supabase
       .from('generated_recipes')

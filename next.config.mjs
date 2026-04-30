@@ -1,3 +1,8 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -13,11 +18,6 @@ const nextConfig = {
     ],
   },
 
-  // Only files ending in page.* or api.* should be treated as Next pages.
-  // This prevents legacy React/Vite view components under src/pages from being
-  // interpreted as Pages Router routes during Vercel builds.
-  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js', 'api.ts', 'api.js'],
-
   // Keep production deployment available while this Vite-era React codebase is
   // being migrated to strict Next.js typing. Type checks can still be run
   // explicitly with `npm run typecheck`.
@@ -25,8 +25,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
+  turbopack: {
+    root: projectRoot,
   },
 
   // Vercel에서 정적 페이지 생성

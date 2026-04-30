@@ -21,7 +21,7 @@ import { AboutModal } from './components/AboutModal';
 import { ServiceBanner } from './components/ServiceBanner';
 import { Layout } from './components/Layout';
 import { Tab } from './components/BottomNav';
-import { HomePage } from './pages/HomePage';
+import { HomePage } from './views/HomePage';
 import { generateBatchRecipes, saveUserRecipe, unsaveUserRecipe, Recipe } from './lib/recipeService';
 import { analyzeInventory } from './lib/gemini';
 import { InventoryAnalysis as InventoryAnalysisType } from './types/inventory';

@@ -307,8 +307,8 @@ async function updateExistingRecipes() {
     console.log('📋 업데이트 대상 레시피 조회 중...');
     const { data: recipes, error: fetchError } = await supabase
       .from('generated_recipes')
-      .select('id, title, main_ingredients, content, image_url, chef_tips, faq')
-      .or('chef_tips.is.null,faq.is.null,image_url.is.null')
+      .select('id, title, main_ingredients, content, chef_tips, faq')
+      .or('chef_tips.is.null,faq.is.null')
       .order('created_at', { ascending: true }) // 오래된 것부터
       .limit(BATCH_SIZE);
 
@@ -355,20 +355,6 @@ async function updateExistingRecipes() {
         }
       }
 
-      // 이미지 검색 (image_url이 없는 경우)
-      if (!recipe.image_url) {
-        console.log(`   🖼️  이미지 검색 중...`);
-        const imageData = await searchUnsplashImage(recipe.title);
-
-        if (imageData) {
-          updateData.image_url = imageData.url;
-          updateData.image_photographer = imageData.photographer;
-          console.log(`   ✅ 이미지 추가 완료`);
-        } else {
-          console.log(`   ⚠️  이미지 검색 실패`);
-        }
-      }
-
       // DB 업데이트
       if (Object.keys(updateData).length > 0) {
         const { error: updateError } = await supabase
@@ -385,7 +371,6 @@ async function updateExistingRecipes() {
         console.log(`   ✅ [${i + 1}] 업데이트 완료!`);
         if (updateData.chef_tips) console.log(`   - 셰프 팁: ${updateData.chef_tips.length}개`);
         if (updateData.faq) console.log(`   - FAQ: ${updateData.faq.length}개`);
-        if (updateData.image_url) console.log(`   - 이미지: ${updateData.image_photographer}`);
         successCount++;
       } else {
         console.log(`   ℹ️  업데이트할 항목 없음`);

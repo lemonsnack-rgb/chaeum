@@ -1,3 +1,4 @@
+import { ChefHat, Clock, Users } from 'lucide-react';
 import { Recipe, extractRecipeDescription } from '../lib/recipeService';
 
 interface RecipeCardWithImageProps {
@@ -16,42 +17,44 @@ export function RecipeCardWithImage({
   return (
     <div
       onClick={() => onClick(recipe)}
-      className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer group"
+      className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-orange-200 transition-all cursor-pointer group overflow-hidden"
     >
-      {/* 텍스트 영역 */}
-      <div className="p-4">
-        {/* 제목 및 조리 시간 */}
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
-            {recipe.title}
-          </h3>
-          <span className="text-xs text-gray-500 flex-shrink-0 mt-1">
-            ⏱️ {recipe.cooking_time}분
-          </span>
+      <div className="h-2 bg-gradient-to-r from-primary via-orange-400 to-amber-300"></div>
+
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-primary">
+            <ChefHat className="h-5 w-5" />
+          </div>
+          <div className="flex items-center gap-1 rounded-full bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
+            <Clock className="h-3.5 w-3.5" />
+            <span>{recipe.cooking_time}분</span>
+          </div>
         </div>
 
-        {/* 설명 (2줄 제한) */}
-        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-3">
+        <h3 className="font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-primary transition-colors mb-2">
+          {recipe.title}
+        </h3>
+
+        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-4">
           {description}
         </p>
 
-        {/* 태그 및 정보 */}
-        <div className="flex items-center justify-between">
-          {/* 테마 태그 (최대 2개) */}
-          <div className="flex gap-2 flex-1">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex gap-2 flex-1 min-w-0">
             {recipe.theme_tags.slice(0, 2).map((tag, index) => (
               <span
                 key={index}
-                className="px-2 py-1 bg-orange-50 text-primary text-xs rounded-full font-medium"
+                className="px-2 py-1 bg-orange-50 text-primary text-xs rounded-full font-medium truncate"
               >
                 {tag}
               </span>
             ))}
           </div>
 
-          {/* 인분 정보 */}
-          <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-            👥 {recipe.servings}인분
+          <span className="text-xs text-gray-500 flex-shrink-0 inline-flex items-center gap-1">
+            <Users className="h-3.5 w-3.5" />
+            {recipe.servings}인분
           </span>
         </div>
       </div>
