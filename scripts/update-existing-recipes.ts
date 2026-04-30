@@ -115,7 +115,7 @@ ${description ? `- 설명: ${description}` : ''}
 // 블로그 콘텐츠 생성
 async function generateBlogContent(recipeTitle: string, mainIngredients: string[], description: string = ''): Promise<BlogContent | null> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const prompt = generateBlogContentPrompt(recipeTitle, mainIngredients, description);
 
     console.log('   📨 Gemini API 호출 중...');
@@ -205,6 +205,8 @@ async function updateExistingRecipes() {
           console.log(`   ✅ 블로그 콘텐츠 생성 완료`);
         } else {
           console.log(`   ⚠️  블로그 콘텐츠 생성 실패`);
+          failedCount++;
+          continue;
         }
       }
 
@@ -242,6 +244,10 @@ async function updateExistingRecipes() {
     console.log(`   ✅ 성공: ${successCount}개`);
     console.log(`   ❌ 실패: ${failedCount}개`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    if (failedCount > 0) {
+      throw new Error(`Recipe update failed for ${failedCount} item(s)`);
+    }
 
   } catch (error: any) {
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
