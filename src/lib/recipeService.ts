@@ -134,7 +134,7 @@ function recipeToDatabase(recipe: Recipe): DatabaseRecipe {
 }
 
 // DatabaseRecipe를 Recipe로 변환
-function databaseToRecipe(dbRecipe: any): Recipe {
+export function databaseToRecipe(dbRecipe: any): Recipe {
   return {
     id: dbRecipe.id,
     title: dbRecipe.title,

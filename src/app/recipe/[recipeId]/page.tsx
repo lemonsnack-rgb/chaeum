@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import RecipeDetailClient from './RecipeDetailClient';
 import { supabase } from '../../../lib/supabase';
-import { Recipe } from '../../../lib/recipeService';
+import { Recipe, databaseToRecipe } from '../../../lib/recipeService';
 
 // 동적 라우팅을 위한 타입 정의
 type Props = {
@@ -13,10 +13,10 @@ type Props = {
 async function getRecipe(recipeId: string): Promise<Recipe | null> {
   try {
     const { data, error } = await supabase
-      .from('recipes')
+      .from('generated_recipes')
       .select('*')
       .eq('id', recipeId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       console.error('Failed to fetch recipe:', error);
@@ -24,39 +24,7 @@ async function getRecipe(recipeId: string): Promise<Recipe | null> {
     }
 
     // DB 구조를 코드 Recipe 인터페이스로 변환
-    const recipe: Recipe = {
-      id: data.id,
-      title: data.title,
-      description: data.content?.description,
-      main_ingredients: data.main_ingredients || [],
-      theme_tags: data.theme_tags || [],
-      ingredients_detail: data.content?.ingredients_detail || [],
-      instructions: data.content?.instructions || [],
-      nutrition: data.content?.nutrition || {
-        calories: data.calories_per_serving || 0,
-        protein: 0,
-        fat: 0,
-        carbohydrates: 0,
-      },
-      deep_info: data.content?.deep_info || {},
-      cooking_time: data.cooking_time_min || 30,
-      servings: data.content?.servings || 2,
-      created_at: data.created_at,
-      image_url: data.image_url,
-      image_photographer: data.image_photographer,
-      chef_tips: data.chef_tips,
-      faq: data.faq,
-      storage_info: data.storage_info,
-      pairing_suggestions: data.pairing_suggestions,
-      meta: {
-        difficulty: data.difficulty,
-        cooking_time_min: data.cooking_time_min,
-        calories_per_serving: data.calories_per_serving,
-        calorie_signal: data.calorie_signal,
-      },
-    };
-
-    return recipe;
+    return databaseToRecipe(data);
   } catch (error) {
     console.error('Error fetching recipe:', error);
     return null;
