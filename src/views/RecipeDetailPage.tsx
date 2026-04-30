@@ -221,13 +221,6 @@ export function RecipeDetailPage() {
       },
 
       // ⭐ 평점 (기본값, 추후 리뷰 시스템 구축 시 실제 데이터로 교체)
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.5",
-        "reviewCount": "89",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
 
       // 카테고리 및 키워드
       "recipeCategory": "메인 요리",

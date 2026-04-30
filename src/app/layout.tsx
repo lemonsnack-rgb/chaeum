@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     siteName: '오늘의냉장고',
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: '오늘의냉장고 - AI 맞춤 레시피 추천',
     description: '냉장고 재료로 만들 수 있는 레시피를 AI가 추천!',
   },

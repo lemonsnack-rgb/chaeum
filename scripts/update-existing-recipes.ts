@@ -2,11 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 환경 변수 체크
-if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_GEMINI_API_KEY || !process.env.VITE_UNSPLASH_ACCESS_KEY) {
+if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_GEMINI_API_KEY) {
   console.error('❌ 필수 환경 변수가 설정되지 않았습니다:');
   console.error('  - VITE_SUPABASE_URL');
   console.error('  - VITE_GEMINI_API_KEY');
-  console.error('  - VITE_UNSPLASH_ACCESS_KEY');
   process.exit(1);
 }
 
@@ -29,7 +28,6 @@ const supabase = createClient(
 );
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
-const UNSPLASH_ACCESS_KEY = process.env.VITE_UNSPLASH_ACCESS_KEY!;
 
 interface FAQ {
   question: string;
@@ -151,151 +149,6 @@ async function generateBlogContent(recipeTitle: string, mainIngredients: string[
   }
 }
 
-// 이미지 연관성 검증
-async function verifyImageRelevance(
-  recipeTitle: string,
-  imageDescription: string,
-  searchQuery: string
-): Promise<boolean> {
-  try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-    const prompt = `당신은 이미지 연관성 검증 전문가입니다.
-
-**요리명:** ${recipeTitle}
-**검색어:** ${searchQuery}
-**이미지 설명:** ${imageDescription || '(설명 없음)'}
-
-위 이미지가 요리와 연관성이 있는지 판단하세요.
-
-**판단 기준:**
-1. 이미지 설명에 요리 관련 키워드가 포함되어 있는가?
-2. 음식/요리 사진인가? (재료만 있는 사진, 식당 외관, 사람 등은 제외)
-3. 검색어와 이미지 설명의 의미가 일치하는가?
-
-**이미지 설명이 없는 경우:** 검색어에 음식 키워드가 포함되어 있으면 허용
-
-**출력:** "YES" 또는 "NO" (한 단어만)`;
-
-    const result = await model.generateContent(prompt);
-    const answer = result.response.text().trim().toUpperCase();
-
-    return answer.includes('YES');
-  } catch (error: any) {
-    console.error(`   ⚠️  연관성 검증 실패: ${error.message}`);
-    // 폴백: 이미지 설명이 없으면 허용 (Unsplash는 음식 사진이 많음)
-    return !imageDescription || imageDescription.length < 10;
-  }
-}
-
-// AI 기반 이미지 검색어 생성
-async function generateImageSearchQuery(recipeTitle: string): Promise<string> {
-  try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-    const prompt = `당신은 음식 사진 검색 전문가입니다.
-
-요리명: "${recipeTitle}"
-
-위 요리의 **정확한 영어 명칭**을 포함한 검색어를 생성하세요.
-
-**핵심 규칙 (필수):**
-1. **요리 명칭을 반드시 포함** - 요리의 핵심 명칭이 검색어에 들어가야 함
-2. 한국 요리: 정확한 로마자 표기 + "korean" 필수 (예: kimchi jjigae korean, bulgogi korean bbq)
-3. 서양 요리: 정확한 요리 명칭 + 특징 (예: carbonara pasta, grilled salmon)
-4. 일본/중국 요리: 원어 로마자 + 국가명 (예: ramen japanese, mapo tofu chinese)
-5. 3-5단어로 구성 (너무 길면 검색 정확도 하락)
-
-**금지 사항:**
-- 추상적인 단어만 사용 (예: "delicious food", "asian dish" 금지)
-- 요리 명칭 없이 재료만 나열 (예: "chicken vegetables rice" 금지)
-
-**출력 형식:** 검색어만 출력 (설명/기호 없이)
-
-예시:
-- "김치찌개" → kimchi jjigae stew korean
-- "까르보나라 파스타" → carbonara pasta creamy
-- "소고기 덮밥" → beef donburi rice bowl japanese
-- "매운 닭발" → dakbal spicy chicken feet korean
-- "연어 그릴" → grilled salmon fillet
-- "토마토 파스타" → tomato pasta spaghetti italian
-- "된장찌개" → doenjang jjigae korean stew`;
-
-    const result = await model.generateContent(prompt);
-    const searchQuery = result.response.text().trim().toLowerCase();
-
-    // 불필요한 문장 제거 (설명이 포함된 경우)
-    const cleanQuery = searchQuery.split('\n')[0].replace(/^(검색어:|출력:|query:)/i, '').trim();
-
-    return cleanQuery;
-  } catch (error: any) {
-    console.error(`   ⚠️  AI 검색어 생성 실패: ${error.message}`);
-    // 폴백: 기본 검색어 생성
-    const words = recipeTitle.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, '').split(/\s+/).slice(0, 2).join(' ');
-    return `${words} food`;
-  }
-}
-
-// Unsplash 이미지 검색
-async function searchUnsplashImage(recipeTitle: string): Promise<{ url: string; photographer: string } | null> {
-  try {
-    // AI 기반 검색어 생성
-    console.log(`   🤖 AI 검색어 생성 중...`);
-    const searchQuery = await generateImageSearchQuery(recipeTitle);
-    console.log(`   🔍 Unsplash 검색: "${searchQuery}"`);
-
-    const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=3&orientation=landscape`,
-      {
-        headers: {
-          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.log(`   ⚠️  Unsplash API 오류: ${response.status}`);
-      return null;
-    }
-
-    const data: any = await response.json();
-
-    if (data.results && data.results.length > 0) {
-      // 검색어와의 연관성 검증 (AI 활용)
-      const photo = data.results[0];
-
-      // AI로 이미지 설명과 레시피 제목의 연관성 검증
-      const isRelevant = await verifyImageRelevance(
-        recipeTitle,
-        photo.alt_description || photo.description || '',
-        searchQuery
-      );
-
-      if (!isRelevant) {
-        console.log(`   ❌ 이미지 연관도 낮음 (건너뜀)`);
-        return null;
-      }
-
-      if (photo.links?.download_location) {
-        await fetch(photo.links.download_location, {
-          headers: { 'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}` },
-        });
-      }
-
-      console.log(`   ✅ 이미지 찾음 (연관도 확인됨): ${photo.user.name}`);
-      return {
-        url: photo.urls.regular,
-        photographer: photo.user.name,
-      };
-    }
-
-    console.log(`   ❌ 이미지를 찾을 수 없습니다.`);
-    return null;
-  } catch (error: any) {
-    console.error(`   ❌ Unsplash 검색 실패:`, error.message);
-    return null;
-  }
-}
-
-// 메인 함수
 async function updateExistingRecipes() {
   const BATCH_SIZE = parseInt(process.env.UPDATE_BATCH_SIZE || '20'); // 기본 20개 (rate limit 안전), 환경변수로 조정 가능
 

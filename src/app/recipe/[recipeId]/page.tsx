@@ -164,13 +164,6 @@ export default async function RecipeDetailPage({ params }: Props) {
       "fatContent": `${recipe.nutrition?.fat || 0}g`,
       "carbohydrateContent": `${recipe.nutrition?.carbohydrates || 0}g`
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.5",
-      "reviewCount": "89",
-      "bestRating": "5",
-      "worstRating": "1"
-    },
     "recipeCategory": "메인 요리",
     "recipeCuisine": "한식",
     "keywords": generateSEOKeywords(recipe).join(', '),
@@ -258,60 +251,8 @@ export default async function RecipeDetailPage({ params }: Props) {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <script
-        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-
-      {/* SEO-friendly Server-Side Rendered Content (Hidden, for crawlers) */}
-      <article itemScope itemType="https://schema.org/Recipe" style={{ display: 'none' }} aria-hidden="true">
-        <h1 itemProp="name">{recipe.title}</h1>
-        <p itemProp="description">{recipe.description || `${recipe.title} 레시피입니다.`}</p>
-
-        {/* 재료 목록 */}
-        <section>
-          <h2>재료 ({recipe.servings || 2}인분)</h2>
-          <ul>
-            {recipe.ingredients_detail?.map((ing, idx) => (
-              <li key={idx} itemProp="recipeIngredient">
-                {ing.name} {ing.amount}
-              </li>
-            )) || recipe.main_ingredients?.map((ing, idx) => (
-              <li key={idx} itemProp="recipeIngredient">{ing}</li>
-            ))}
-          </ul>
-        </section>
-
-        {/* 조리 순서 */}
-        <section>
-          <h2>조리 순서</h2>
-          <ol>
-            {recipe.instructions?.map((step, idx) => (
-              <li key={idx} itemProp="recipeInstructions">{step}</li>
-            ))}
-          </ol>
-        </section>
-
-        {/* 영양 정보 */}
-        {recipe.nutrition && (
-          <section itemProp="nutrition" itemScope itemType="https://schema.org/NutritionInformation">
-            <h2>영양 정보 (1인분 기준)</h2>
-            <p>칼로리: <span itemProp="calories">{recipe.nutrition.calories}kcal</span></p>
-            <p>단백질: <span itemProp="proteinContent">{recipe.nutrition.protein}g</span></p>
-            <p>탄수화물: <span itemProp="carbohydrateContent">{recipe.nutrition.carbohydrates}g</span></p>
-            <p>지방: <span itemProp="fatContent">{recipe.nutrition.fat}g</span></p>
-          </section>
-        )}
-
-        {/* 조리 시간 및 기타 메타 정보 */}
-        <p>조리 시간: {recipe.cooking_time || 30}분</p>
-        <meta itemProp="totalTime" content={totalTimeISO} />
-        <meta itemProp="recipeYield" content={`${recipe.servings || 2}인분`} />
-        <meta itemProp="author" content="오늘의냉장고" />
-        <meta itemProp="datePublished" content={recipe.created_at} />
-      </article>
 
       {/* Client Component for Interactive User Interface */}
       <RecipeDetailClient recipe={recipe} />
