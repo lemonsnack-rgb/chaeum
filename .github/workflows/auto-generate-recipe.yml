@@ -4,7 +4,7 @@ on:
   schedule:
     # 5분마다 실행 (GitHub Actions 최소 간격)
     # 무료 티어: 5분당 1개 신규 레시피 생성
-    - cron: '*/5 * * * *'
+    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
 
   # 수동 실행 가능
   workflow_dispatch:
