@@ -18,6 +18,9 @@ on:
   repository_dispatch:
     types: [update-recipes]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
