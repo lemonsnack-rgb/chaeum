@@ -20,6 +20,31 @@ const supabase = createClient(
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function generateContentWithRetry(model: any, prompt: string) {
+  const maxAttempts = 4;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await model.generateContent(prompt);
+    } catch (error: any) {
+      const status = error?.status;
+      const retryable = status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+
+      if (!retryable || attempt === maxAttempts) {
+        throw error;
+      }
+
+      const delayMs = 15000 * attempt;
+      console.warn(`⚠️ Gemini API 일시 오류(${status || 'unknown'}). ${delayMs / 1000}초 후 재시도합니다. (${attempt}/${maxAttempts})`);
+      await sleep(delayMs);
+    }
+  }
+
+  throw new Error('Gemini API retry loop exited unexpectedly');
+}
+
 // 블로그 스타일 필드 인터페이스
 interface FAQ {
   question: string;
@@ -175,7 +200,7 @@ async function generateRecipesForTheme(
   });
 
   console.log('📨 Gemini API 호출 중...');
-  const result = await model.generateContent(prompt);
+  const result = await generateContentWithRetry(model, prompt);
   const response = result.response;
   const text = response.text();
 
