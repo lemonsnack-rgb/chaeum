@@ -2,21 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.oneulfridge.com</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1</priority>
   </url>
   <url>
     <loc>https://www.oneulfridge.com/?tab=search</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.oneulfridge.com/?tab=recipes</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.oneulfridge.com/recipe/0200f327-b1aa-4fd5-ac77-a4e6c08e5cdf</loc>
+    <lastmod>2026-10-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.oneulfridge.com/recipe/28296c21-3a4d-4690-b83c-5c592e485d83</loc>
@@ -3235,13 +3241,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.oneulfridge.com/recipe/f20616a4-4094-49be-8635-1a438944023f</loc>
+    <loc>https://www.oneulfridge.com/recipe/0589e9cd-e7b3-4354-812d-09e2233f434d</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.oneulfridge.com/recipe/0589e9cd-e7b3-4354-812d-09e2233f434d</loc>
+    <loc>https://www.oneulfridge.com/recipe/f20616a4-4094-49be-8635-1a438944023f</loc>
     <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
